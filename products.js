@@ -68,7 +68,7 @@ const PRODUCTS = [
   },
   {
     id: 7,
-    cat: 'goloseimas',
+    cat: 'guloseimas',
     name: "Jujubas Coloridas",
     desc: "Goma macia e colorida, festa de sabores de fruta.",
     price: "R$ 12,90",
@@ -76,7 +76,7 @@ const PRODUCTS = [
   },
   {
     id: 8,
-    cat: 'goloseimas',
+    cat: 'guloseimas',
     name: "Minhocas de Goma",
     desc: "A clássica goma em formato de minhoquinha.",
     price: "R$ 11,90",
@@ -84,7 +84,7 @@ const PRODUCTS = [
   },
   {
     id: 9,
-    cat: 'goloseimas',
+    cat: 'guloseimas',
     name: "Ácidas Cereja & Melancia",
     desc: "Goma açucarada com toque ácido de cereja e melancia.",
     price: "R$ 12,90",
@@ -92,7 +92,7 @@ const PRODUCTS = [
   },
   {
     id: 10,
-    cat: 'goloseimas',
+    cat: 'guloseimas',
     name: "Bananinhas de Goma",
     desc: "Goma macia e docinha com sabor de banana.",
     price: "R$ 11,50",
