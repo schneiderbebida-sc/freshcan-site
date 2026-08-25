@@ -1,0 +1,33 @@
+    <div class="section-head reveal">
+      <span class="eyebrow">Disponíveis agora</span>
+      <h2>Cupons da casa</h2>
+    </div>
+
+    <div class="coupon-list reveal">
+      <div class="coupon-card">
+        <div>
+          <div class="code">FRESH10</div>
+          <p>10% de desconto em pedidos acima de R$ 60.</p>
+        </div>
+        <button class="btn btn-outline btn-sm copy-btn" data-code="FRESH10">Copiar</button>
+      </div>
+      <div class="coupon-card">
+        <div>
+          <div class="code">PRIMEIRACOMPRA</div>
+          <p>15% de desconto na sua primeira compra FreshCan.</p>
+        </div>
+        <button class="btn btn-outline btn-sm copy-btn" data-code="PRIMEIRACOMPRA">Copiar</button>
+      </div>
+      <div class="coupon-card">
+        <div>
+          <div class="code">VERAO2026</div>
+          <p>Drinks com 20% off nas compras de sexta a domingo.</p>
+        </div>
+        <button class="btn btn-outline btn-sm copy-btn" data-code="VERAO2026">Copiar</button>
+      </div>
+      <div class="coupon-card">
+        <div>
+          <div class="code">FRETEGRATIS</div>
+          <p>Retirada sem custo no quiosque — sempre válido.</p>
+        </div>
+        <button class="btn btn-outline btn-sm copy-btn" data-code="FRETEGRATIS">Copiar</button>
