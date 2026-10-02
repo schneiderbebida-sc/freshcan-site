@@ -157,22 +157,22 @@
 
     <div class="pricing-grid reveal">
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 59 / mês" form="subscription-form" required>
+        <input type="radio" name="plan" value="R$ 59 / mês" data-valor="59" form="subscription-form" required>
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$59<span>/mês</span></div>
         </label>
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 99 / mês" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 99 / mês" data-valor="99" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$99<span>/mês</span></div>
         </label>
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 150 / mês" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 150 / mês" data-valor="150" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$150<span>/mês</span></div>
         </label>
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 199 / mês" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 199 / mês" data-valor="199" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$199<span>/mês</span></div>
         </label>
@@ -225,6 +225,11 @@
             <input type="tel" id="s-phone" placeholder="(47) 9xxxx-xxxx" required>
           </div>
           <div class="form-field full">
+            <label for="s-cpf">CPF do responsável</label>
+            <input type="text" id="s-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required>
+            <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Exigido pela Asaas para emitir o boleto da assinatura.</p>
+          </div>
+          <div class="form-field full">
             <label for="s-child">Nome da criança</label>
             <input type="text" id="s-child" required>
           </div>
@@ -268,13 +273,35 @@
         <p class="plan-note" style="margin-top:4px; margin-bottom:18px; text-align:left;">
           Pedimos apenas os dados do responsável. O código de validação será enviado por este WhatsApp e usado para liberar a retirada do produto.
         </p>
-        <button type="submit" class="btn btn-coral btn-block">Quero assinar</button>
+        <button type="submit" id="subscription-submit" class="btn btn-coral btn-block">Quero assinar</button>
+        <p id="subscription-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
       </form>
 
       <div class="form-success" id="subscription-success">
         <div class="ico">✅</div>
         <h3>Recebemos seu interesse!</h3>
         <p>Abrimos o WhatsApp da FreshCan com seus dados preenchidos. Como ainda não temos envio automático de foto, anexe a foto da criança diretamente nessa conversa do WhatsApp. Nosso time confirma a assinatura por lá e envia o código de validação para esse número.</p>
+        <div id="payment-result" style="display:none; margin-top:16px; padding:16px; background:var(--cream); border-radius:12px;">
+          <div id="result-boleto" style="display:none;">
+            <p style="font-weight:600; margin-bottom:8px;">🧾 Seu boleto já foi gerado:</p>
+            <a id="boleto-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Abrir boleto</a>
+          </div>
+          <div id="result-pix" style="display:none; text-align:center;">
+            <p style="font-weight:600; margin-bottom:8px;">⚡ Pague com Pix:</p>
+            <img id="pix-qr-image" src="" alt="QR code Pix" style="width:180px; height:180px; margin:0 auto 10px; display:block;">
+            <p style="font-size:12px; color:var(--ink-soft); margin-bottom:6px;">Ou copie o código:</p>
+            <div style="display:flex; gap:8px; align-items:center; justify-content:center;">
+              <input id="pix-copia-cola" type="text" readonly style="font-size:11px; max-width:220px;">
+              <button type="button" id="pix-copy-btn" class="btn btn-primary btn-sm">Copiar</button>
+            </div>
+          </div>
+          <div id="result-cartao" style="display:none;">
+            <p style="font-weight:600; margin-bottom:8px;">💳 Finalize o pagamento com cartão:</p>
+            <a id="cartao-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Ir para o checkout seguro</a>
+            <p style="font-size:12px; color:var(--ink-soft); margin-top:8px;">Você será levado(a) a uma página da própria Asaas para digitar os dados do cartão com segurança — nós nunca recebemos esses dados.</p>
+          </div>
+          <p style="font-size:12px; color:var(--ink-soft); margin-top:10px;">Vencimento: <span id="payment-vencimento"></span>. A cobrança se repete todo mês automaticamente.</p>
+        </div>
       </div>
 
       <div class="privacy-note">
@@ -501,29 +528,107 @@
 
     const form = document.getElementById("subscription-form");
     const success = document.getElementById("subscription-success");
-    form.addEventListener("submit", (e) => {
+    const submitBtn = document.getElementById("subscription-submit");
+    const errorMsg = document.getElementById("subscription-error");
+    const paymentResult = document.getElementById("payment-result");
+    const LABEL_GERANDO = { Boleto: "Gerando boleto...", Pix: "Gerando Pix...", "Cartão de crédito": "Abrindo checkout..." };
+
+    async function gerarCobranca({ nome, cpf, whatsapp, crianca, escola, valor, metodo }) {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/criar-assinatura`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nome,
+          cpf,
+          whatsapp,
+          criancaNome: crianca,
+          escola,
+          valor,
+          metodo,
+          descricao: `Assinatura escolar FreshCan — ${crianca} — ${escola}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível gerar a cobrança agora.");
+      return data;
+    }
+
+    function mostrarResultadoPagamento(cobranca) {
+      document.getElementById("result-boleto").style.display = "none";
+      document.getElementById("result-pix").style.display = "none";
+      document.getElementById("result-cartao").style.display = "none";
+
+      if (cobranca.metodo === "Boleto" && cobranca.boletoUrl) {
+        document.getElementById("boleto-link").href = cobranca.boletoUrl;
+        document.getElementById("result-boleto").style.display = "block";
+      } else if (cobranca.metodo === "Pix" && cobranca.pixCopiaCola) {
+        document.getElementById("pix-qr-image").src = cobranca.pixQrCodeImagem || "";
+        document.getElementById("pix-copia-cola").value = cobranca.pixCopiaCola;
+        document.getElementById("result-pix").style.display = "block";
+      } else if (cobranca.metodo === "Cartão de crédito" && cobranca.faturaUrl) {
+        document.getElementById("cartao-link").href = cobranca.faturaUrl;
+        document.getElementById("result-cartao").style.display = "block";
+      } else {
+        return false;
+      }
+      document.getElementById("payment-vencimento").textContent = cobranca.vencimento || "a confirmar";
+      paymentResult.style.display = "block";
+      return true;
+    }
+
+    document.getElementById("pix-copy-btn")?.addEventListener("click", async () => {
+      const input = document.getElementById("pix-copia-cola");
+      await navigator.clipboard.writeText(input.value);
+      const btn = document.getElementById("pix-copy-btn");
+      btn.textContent = "Copiado!";
+      setTimeout(() => { btn.textContent = "Copiar"; }, 2000);
+    });
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      errorMsg.style.display = "none";
+
       const nome = document.getElementById("s-name").value;
+      const cpf = document.getElementById("s-cpf").value;
       const whatsapp = document.getElementById("s-phone").value;
       const crianca = document.getElementById("s-child").value;
       const escola = document.getElementById("s-school").value;
-      const plano = document.querySelector('input[name="plan"]:checked')?.value || "[plano não selecionado]";
+      const planoInput = document.querySelector('input[name="plan"]:checked');
+      const plano = planoInput?.value || "[plano não selecionado]";
+      const valorPlano = Number(planoInput?.dataset.valor || 0);
       const pagamento = document.querySelector('input[name="payment"]:checked')?.value || "[forma de pagamento não selecionada]";
       const categorias = Array.from(document.querySelectorAll('input[name="allowed-category"]:checked')).map((i) => i.value);
 
+      let cobranca = null;
+      submitBtn.disabled = true;
+      submitBtn.textContent = LABEL_GERANDO[pagamento] || "Enviando...";
+      try {
+        cobranca = await gerarCobranca({ nome, cpf, whatsapp, crianca, escola, valor: valorPlano, metodo: pagamento });
+      } catch (err) {
+        errorMsg.textContent = `Não deu pra gerar a cobrança automaticamente agora (${err.message}). Vamos te enviar por WhatsApp assim que possível — segue o pedido pra nossa equipe.`;
+        errorMsg.style.display = "block";
+      }
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Quero assinar";
+
       let msg = "Olá, FreshCan! Quero assinar o programa de assinatura para o lanche escolar. 🎒\n\n";
       msg += `Nome do responsável: ${nome}\n`;
+      msg += `CPF do responsável: ${cpf}\n`;
       msg += `WhatsApp do responsável: ${whatsapp}\n`;
       msg += `Nome da criança: ${crianca}\n`;
       msg += `Escola: ${escola}\n`;
       msg += `Plano escolhido: ${plano}\n`;
       msg += `Forma de pagamento: ${pagamento}\n`;
       msg += `Produtos liberados para a criança: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
+      if (cobranca?.boletoUrl) msg += `Boleto já gerado: ${cobranca.boletoUrl}\n`;
+      if (cobranca?.faturaUrl && cobranca.metodo !== "Boleto") msg += `Link de pagamento: ${cobranca.faturaUrl}\n`;
       msg += "\nVou anexar a foto da criança nesta conversa.";
 
       window.open(window.FreshCan.buildWhatsAppLink(msg), "_blank");
       form.style.display = "none";
       success.classList.add("is-visible");
+
+      if (cobranca) mostrarResultadoPagamento(cobranca);
     });
   });
 </script>

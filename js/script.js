@@ -5,6 +5,7 @@
    ========================================================================== */
 
 const WHATSAPP_NUMBER = "5547933860900"; // (47) 93386-0900
+const FRESHCAN_API_URL = "https://freshcan-api.vercel.app"; // TODO: atualizar após o primeiro deploy do freshcan-api
 
 /* --- Navegação: some/aparece fundo sólido ao rolar --- */
 function initNav() {
@@ -74,6 +75,7 @@ function buildWhatsAppLink(message) {
 window.FreshCan = window.FreshCan || {};
 window.FreshCan.buildWhatsAppLink = buildWhatsAppLink;
 window.FreshCan.WHATSAPP_NUMBER = WHATSAPP_NUMBER;
+window.FreshCan.API_URL = FRESHCAN_API_URL;
 
 /* --- Formatação de preço em BRL --- */
 function formatBRL(value) {
