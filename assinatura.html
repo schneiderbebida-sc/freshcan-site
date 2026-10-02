@@ -49,7 +49,7 @@
     <p>Com a assinatura FreshCan, você contrata uma vez e a criança passa a retirar um produto FreshCan elegível usando um código de validação enviado pelo WhatsApp do responsável.</p>
     <p style="margin-top:14px; font-size:13.5px; color:var(--ink-soft);">🧪 Campanha piloto em fase de teste, disponível no Colégio Bom Jesus Viva Park.</p>
     <div class="hero-actions" style="margin-top:30px;">
-      <a href="#cadastro" class="btn btn-coral">Quero assinar</a>
+      <a href="#planos" class="btn btn-coral">Quero assinar</a>
       <a href="#como-funciona" class="btn btn-ghost">Ver como funciona</a>
     </div>
   </div>
@@ -143,7 +143,7 @@
 </section>
 
 <!-- ============================== INFORMAÇÕES DA ASSINATURA ============================== -->
-<section class="section">
+<section class="section" id="planos">
   <div class="container">
     <div class="section-head center reveal">
       <span class="eyebrow">Informações da assinatura</span>
@@ -157,7 +157,7 @@
 
     <div class="pricing-grid reveal">
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 59 / mês" data-valor="59" form="subscription-form" required>
+        <input type="radio" name="plan" value="R$ 59 / mês" data-valor="59" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$59<span>/mês</span></div>
         </label>
@@ -177,6 +177,7 @@
         <div class="tier-price">R$199<span>/mês</span></div>
         </label>
     </div>
+    <p id="plan-required-hint" style="display:none; text-align:center; color:#b42318; font-size:13.5px; margin-top:12px;">Escolha um plano aí em cima antes de continuar.</p>
 
     <div class="plan-card reveal" style="margin-top:30px;">
       <dl class="plan-fields">
@@ -197,7 +198,7 @@
           <dd class="placeholder">[regras de cancelamento]</dd>
         </div>
       </dl>
-      <a href="#cadastro" class="btn btn-coral btn-block">Continuar para o cadastro</a>
+      <a href="#cadastro" class="btn btn-coral btn-block">Quero assinar</a>
       <p class="plan-note">Campos entre colchetes ainda não foram definidos e precisam ser preenchidos antes da publicação. A cobrança mensal será feita via Asaas — essa integração ainda precisa ser configurada.</p>
       <p class="plan-note">Já é assinante? <a href="painel.html" style="color:var(--ink); text-decoration:underline;">Veja um preview do seu painel</a>.</p>
     </div>
@@ -273,7 +274,7 @@
         <p class="plan-note" style="margin-top:4px; margin-bottom:18px; text-align:left;">
           Pedimos apenas os dados do responsável. O código de validação será enviado por este WhatsApp e usado para liberar a retirada do produto.
         </p>
-        <button type="submit" id="subscription-submit" class="btn btn-coral btn-block">Quero assinar</button>
+        <button type="submit" id="subscription-submit" class="btn btn-coral btn-block">Confirmar assinatura</button>
         <p id="subscription-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
       </form>
 
@@ -405,7 +406,7 @@
       <h2>Quer saber mais sobre a assinatura?</h2>
       <p>Fale com a FreshCan pelo WhatsApp e tire suas dúvidas antes de assinar.</p>
       <div class="hero-actions">
-        <a href="#cadastro" class="btn btn-primary">Quero assinar</a>
+        <a href="#planos" class="btn btn-primary">Quero assinar</a>
         <a id="cta-whatsapp" href="#" class="btn btn-ghost">Falar no WhatsApp</a>
       </div>
     </div>
@@ -483,6 +484,7 @@
         input.closest(".price-tier").classList.add("is-selected");
         planSummary.textContent = `Plano escolhido: ${input.value}.`;
         planSummary.style.color = "var(--ink)";
+        document.getElementById("plan-required-hint").style.display = "none";
       });
     });
     document.getElementById("s-plan-scroll")?.addEventListener("click", (e) => {
@@ -594,8 +596,14 @@
       const crianca = document.getElementById("s-child").value;
       const escola = document.getElementById("s-school").value;
       const planoInput = document.querySelector('input[name="plan"]:checked');
-      const plano = planoInput?.value || "[plano não selecionado]";
-      const valorPlano = Number(planoInput?.dataset.valor || 0);
+      if (!planoInput) {
+        document.querySelector(".pricing-grid").scrollIntoView({ behavior: "smooth", block: "center" });
+        document.getElementById("plan-required-hint").style.display = "block";
+        return;
+      }
+      document.getElementById("plan-required-hint").style.display = "none";
+      const plano = planoInput.value;
+      const valorPlano = Number(planoInput.dataset.valor || 0);
       const pagamento = document.querySelector('input[name="payment"]:checked')?.value || "[forma de pagamento não selecionada]";
       const categorias = Array.from(document.querySelectorAll('input[name="allowed-category"]:checked')).map((i) => i.value);
 
@@ -609,7 +617,7 @@
         errorMsg.style.display = "block";
       }
       submitBtn.disabled = false;
-      submitBtn.textContent = "Quero assinar";
+      submitBtn.textContent = "Confirmar assinatura";
 
       let msg = "Olá, FreshCan! Quero assinar o programa de assinatura para o lanche escolar. 🎒\n\n";
       msg += `Nome do responsável: ${nome}\n`;
