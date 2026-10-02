@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administração da Assinatura (Protótipo) — FreshCan</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="nav is-dark is-solid" data-solid-from="0">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">fresh<span class="dot">·</span>can</a>
+    <div class="nav-actions">
+      <span class="demo-tag" style="background:rgba(255,255,255,0.14); color:#fff;">Área interna · admin</span>
+    </div>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="eyebrow">Freshcan · Administração</span>
+    <h1>Painel da assinatura escolar.</h1>
+    <p>Ative ou desative clientes, configure as regras de saldo e controle quais produtos entram no programa.</p>
+  </div>
+</section>
+
+<section class="section" style="padding-top:60px;">
+  <div class="container">
+
+    <div class="integration-banner reveal" style="max-width:600px; margin-left:auto; margin-right:auto;">
+      <span class="ico">⚠️</span>
+      <div>
+        <h4>Protótipo — nada aqui é salvo de verdade</h4>
+        <p>Os toggles e campos funcionam na tela para você validar a experiência, mas ainda não estão ligados a um banco de dados real. Essa parte entra na próxima fase, com login de admin de verdade.</p>
+      </div>
+    </div>
+
+    <!-- Portão de acesso -->
+    <div id="admin-gate" class="gate-shell reveal">
+      <div class="ico">🔒</div>
+      <h2>Login administrativo</h2>
+      <p>Acesso restrito à equipe FreshCan. (Protótipo: qualquer senha com 4+ caracteres funciona.)</p>
+      <div class="form-field">
+        <label for="gate-user">Usuário</label>
+        <input type="text" id="gate-user" placeholder="admin@freshcan.com.br">
+      </div>
+      <div class="form-field">
+        <label for="gate-pass">Senha</label>
+        <input type="password" id="gate-pass" placeholder="••••••••">
+      </div>
+      <button id="gate-submit" class="btn btn-coral btn-block">Entrar</button>
+    </div>
+
+    <!-- Painel (escondido até o login ser confirmado) -->
+    <div id="admin-app" hidden>
+
+      <div class="internal-section reveal">
+        <div class="internal-section-head">
+          <div>
+            <h3>Clientes</h3>
+            <p>Ative ou desative o acesso de cada responsável. Dados de exemplo.</p>
+          </div>
+          <span class="demo-tag">Dados de exemplo</span>
+        </div>
+
+        <div class="data-row">
+          <div class="main">
+            <div class="name">Maria Teste — [nome da criança]</div>
+            <div class="meta">Colégio Bom Jesus Vivapark · Plano R$99/mês · Pix</div>
+          </div>
+          <div class="right">
+            <span class="row-status on">Ativo</span>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+        <div class="data-row">
+          <div class="main">
+            <div class="name">Carlos Exemplo — [nome da criança]</div>
+            <div class="meta">Colégio Bom Jesus Vivapark · Plano R$150/mês · Boleto</div>
+          </div>
+          <div class="right">
+            <span class="row-status on">Ativo</span>
+            <label class="toggle-switch"><input type="checkbox" checked><span class="track"></span></label>
+          </div>
+        </div>
+        <div class="data-row">
+          <div class="main">
+            <div class="name">Ana Exemplo — [nome da criança]</div>
+            <div class="meta">Colégio Bom Jesus Vivapark · Plano R$59/mês · Cartão de crédito</div>
+          </div>
+          <div class="right">
+            <span class="row-status off">Inativo — pagamento pendente</span>
+            <label class="toggle-switch"><input type="checkbox"><span class="track"></span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="internal-section reveal">
+        <div class="internal-section-head">
+          <div>
+            <h3>Regras de saldo</h3>
+            <p>Valem para todas as assinaturas do piloto. Ainda não definidas — preencha antes de publicar.</p>
+          </div>
+        </div>
+        <div class="form-shell" style="padding:28px; margin-top:0;">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="rule-retiradas">Quantidade de retiradas por ciclo</label>
+              <input type="number" id="rule-retiradas" placeholder="Ex: 4">
+            </div>
+            <div class="form-field">
+              <label for="rule-validade">Validade do saldo (dias)</label>
+              <input type="number" id="rule-validade" placeholder="Ex: 90">
+            </div>
+          </div>
+          <p class="plan-note" style="text-align:left; margin-top:16px;">Essa validade precisa aparecer para o cliente no painel dele — já deixamos um campo pronto lá para isso assim que o valor for confirmado aqui.</p>
+          <button class="btn btn-outline" style="margin-top:6px;" id="save-rules">Salvar regras (demo)</button>
+          <span id="rules-saved" style="display:none; margin-left:12px; color:#1a7a4c; font-size:13px; font-weight:600;">✅ Salvo (apenas nesta tela)</span>
+        </div>
+      </div>
+
+      <div class="internal-section reveal">
+        <div class="internal-section-head">
+          <div>
+            <h3>Produtos</h3>
+            <p>Catálogo atual do site. Ative só o que entra na assinatura escolar.</p>
+          </div>
+        </div>
+        <div class="category-flag">
+          <span>🚫</span>
+          <span><strong>Bebidas alcoólicas (Drinks &amp; Spritz, Vinho)</strong> ficam fora da lista por padrão e não devem ser ativadas para a assinatura escolar.</span>
+        </div>
+        <div id="admin-products"></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<div class="footer-bottom" style="max-width:var(--container); margin:0 auto; padding:30px 32px; color:var(--ink-soft); font-size:12.5px;">
+  <span>FreshCan — Área interna, uso exclusivo da equipe.</span>
+</div>
+
+<script src="js/products.js"></script>
+<script src="js/script.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const gate = document.getElementById("admin-gate");
+    const app = document.getElementById("admin-app");
+    document.getElementById("gate-submit").addEventListener("click", () => {
+      const pass = document.getElementById("gate-pass").value;
+      if (pass.length >= 4) {
+        gate.hidden = true;
+        app.hidden = false;
+      } else {
+        document.getElementById("gate-pass").focus();
+      }
+    });
+
+    document.getElementById("save-rules").addEventListener("click", () => {
+      document.getElementById("rules-saved").style.display = "inline";
+    });
+
+    const ALCOHOL_CATEGORIES = ["drinks", "vinho"];
+    const wrap = document.getElementById("admin-products");
+    if (window.PRODUCT_CATEGORIES && wrap) {
+      window.PRODUCT_CATEGORIES.forEach((cat) => {
+        const count = window.PRODUCTS.filter((p) => p.category === cat.id).length;
+        const isAlcohol = ALCOHOL_CATEGORIES.includes(cat.id);
+        const row = document.createElement("div");
+        row.className = "data-row";
+        row.innerHTML = `
+          <div class="main">
+            <div class="name">${cat.label}</div>
+            <div class="meta">${count} produto${count === 1 ? "" : "s"} no catálogo</div>
+          </div>
+          <div class="right">
+            <span class="row-status ${isAlcohol ? "warn" : "on"}">${isAlcohol ? "Contém álcool" : "Ativo"}</span>
+            <label class="toggle-switch"><input type="checkbox" ${isAlcohol ? "" : "checked"}><span class="track"></span></label>
+          </div>`;
+        wrap.appendChild(row);
+      });
+    }
+  });
+</script>
+</body>
+</html>
