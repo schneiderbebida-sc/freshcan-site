@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Balcão de Retirada (Protótipo) — FreshCan</title>
+<title>Balcão de Retirada — FreshCan</title>
 <meta name="robots" content="noindex, nofollow">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -31,19 +31,11 @@
 <section class="section" style="padding-top:60px;">
   <div class="container">
 
-    <div class="integration-banner reveal" style="max-width:600px; margin-left:auto; margin-right:auto;">
-      <span class="ico">⚠️</span>
-      <div>
-        <h4>Protótipo — ainda não conectado</h4>
-        <p>Essa tela ainda não está ligada ao sistema real de assinaturas. Por enquanto, qualquer código mostra um resultado de exemplo, só para validar como a experiência vai funcionar.</p>
-      </div>
-    </div>
-
     <!-- Portão de acesso -->
     <div id="balcao-gate" class="gate-shell reveal">
       <div class="ico">🔒</div>
       <h2>Acesso da equipe</h2>
-      <p>Digite o PIN da loja para abrir o balcão de retirada. (Protótipo: qualquer PIN com 4 dígitos funciona.)</p>
+      <p>Digite o PIN da loja para abrir o balcão de retirada.</p>
       <div class="form-field">
         <label for="gate-pin">PIN da loja</label>
         <input type="password" id="gate-pin" inputmode="numeric" maxlength="4" placeholder="••••">
@@ -60,7 +52,7 @@
       </div>
 
       <div id="lookup-empty" style="text-align:center; color:var(--ink-soft); font-size:13.5px;">
-        Digite um código de exemplo acima (qualquer texto) para ver como o resultado aparece.
+        Digite o código do cliente acima para consultar o saldo e liberar a retirada.
       </div>
 
       <div id="lookup-result" class="lookup-result reveal" hidden>
