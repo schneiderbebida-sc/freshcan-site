@@ -43,16 +43,17 @@
     <div id="admin-gate" class="gate-shell reveal">
       <div class="ico">🔒</div>
       <h2>Login administrativo</h2>
-      <p>Acesso restrito à equipe FreshCan. (Protótipo: qualquer senha com 4+ caracteres funciona.)</p>
+      <p>Acesso restrito à equipe FreshCan.</p>
       <div class="form-field">
-        <label for="gate-user">Usuário</label>
-        <input type="text" id="gate-user" placeholder="admin@freshcan.com.br">
+        <label for="gate-user">E-mail</label>
+        <input type="email" id="gate-user" placeholder="admin@freshcan.com.br">
       </div>
       <div class="form-field">
         <label for="gate-pass">Senha</label>
         <input type="password" id="gate-pass" placeholder="••••••••">
       </div>
       <button id="gate-submit" class="btn btn-coral btn-block">Entrar</button>
+      <p id="gate-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
     </div>
 
     <!-- Painel (escondido até o login ser confirmado) -->
@@ -62,48 +63,17 @@
         <div class="internal-section-head">
           <div>
             <h3>Clientes</h3>
-            <p>Ative ou desative o acesso de cada responsável. Dados de exemplo.</p>
-          </div>
-          <span class="demo-tag">Dados de exemplo</span>
-        </div>
-
-        <div class="data-row">
-          <div class="main">
-            <div class="name">Maria Teste — [nome da criança]</div>
-            <div class="meta">Colégio Bom Jesus Vivapark · Plano R$99/mês · Pix</div>
-          </div>
-          <div class="right">
-            <span class="row-status on">Ativo</span>
-            <label class="toggle-switch"><input type="checkbox" checked><span class="track"></span></label>
+            <p>Ative ou desative o acesso de cada responsável.</p>
           </div>
         </div>
-        <div class="data-row">
-          <div class="main">
-            <div class="name">Carlos Exemplo — [nome da criança]</div>
-            <div class="meta">Colégio Bom Jesus Vivapark · Plano R$150/mês · Boleto</div>
-          </div>
-          <div class="right">
-            <span class="row-status on">Ativo</span>
-            <label class="toggle-switch"><input type="checkbox" checked><span class="track"></span></label>
-          </div>
-        </div>
-        <div class="data-row">
-          <div class="main">
-            <div class="name">Ana Exemplo — [nome da criança]</div>
-            <div class="meta">Colégio Bom Jesus Vivapark · Plano R$59/mês · Cartão de crédito</div>
-          </div>
-          <div class="right">
-            <span class="row-status off">Inativo — pagamento pendente</span>
-            <label class="toggle-switch"><input type="checkbox"><span class="track"></span></label>
-          </div>
-        </div>
+        <div id="admin-subscribers"></div>
       </div>
 
       <div class="internal-section reveal">
         <div class="internal-section-head">
           <div>
             <h3>Regras de saldo</h3>
-            <p>Valem para todas as assinaturas do piloto. Ainda não definidas — preencha antes de publicar.</p>
+            <p>Valem para todas as assinaturas do piloto.</p>
           </div>
         </div>
         <div class="form-shell" style="padding:28px; margin-top:0;">
@@ -117,9 +87,8 @@
               <input type="number" id="rule-validade" placeholder="Ex: 90">
             </div>
           </div>
-          <p class="plan-note" style="text-align:left; margin-top:16px;">Essa validade precisa aparecer para o cliente no painel dele — já deixamos um campo pronto lá para isso assim que o valor for confirmado aqui.</p>
-          <button class="btn btn-outline" style="margin-top:6px;" id="save-rules">Salvar regras (demo)</button>
-          <span id="rules-saved" style="display:none; margin-left:12px; color:#1a7a4c; font-size:13px; font-weight:600;">✅ Salvo (apenas nesta tela)</span>
+          <button class="btn btn-outline" style="margin-top:6px;" id="save-rules">Salvar regras</button>
+          <span id="rules-saved" style="display:none; margin-left:12px; color:#1a7a4c; font-size:13px; font-weight:600;">✅ Salvo</span>
         </div>
       </div>
 
@@ -149,29 +118,147 @@
 <script src="js/products.js"></script>
 <script src="js/script.js"></script>
 <script>
+  const SUPABASE_URL = "https://hcmiufnskjquqdjnpfkh.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_EpLgBenGFpAwYtNLx6O5Mg_Ihumd8SU";
+
   document.addEventListener("DOMContentLoaded", () => {
     const gate = document.getElementById("admin-gate");
     const app = document.getElementById("admin-app");
-    document.getElementById("gate-submit").addEventListener("click", () => {
-      const pass = document.getElementById("gate-pass").value;
-      if (pass.length >= 4) {
-        gate.hidden = true;
-        app.hidden = false;
-      } else {
-        document.getElementById("gate-pass").focus();
+    const gateError = document.getElementById("gate-error");
+    let accessToken = sessionStorage.getItem("freshcan-admin-token");
+
+    function apiHeaders() {
+      return { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
+    }
+
+    async function carregarTudo() {
+      await Promise.all([carregarAssinantes(), carregarRegras(), carregarCategorias()]);
+    }
+
+    async function entrar() {
+      gate.hidden = true;
+      app.hidden = false;
+      try {
+        await carregarTudo();
+      } catch (err) {
+        sair(err.message);
+      }
+    }
+
+    function sair(mensagem) {
+      sessionStorage.removeItem("freshcan-admin-token");
+      accessToken = null;
+      app.hidden = true;
+      gate.hidden = false;
+      if (mensagem) {
+        gateError.textContent = mensagem;
+        gateError.style.display = "block";
+      }
+    }
+
+    document.getElementById("gate-submit").addEventListener("click", async () => {
+      gateError.style.display = "none";
+      const email = document.getElementById("gate-user").value.trim();
+      const password = document.getElementById("gate-pass").value;
+      try {
+        const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", apikey: SUPABASE_PUBLISHABLE_KEY },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error("E-mail ou senha incorretos.");
+        accessToken = data.access_token;
+        sessionStorage.setItem("freshcan-admin-token", accessToken);
+        await entrar();
+      } catch (err) {
+        gateError.textContent = err.message;
+        gateError.style.display = "block";
       }
     });
 
-    document.getElementById("save-rules").addEventListener("click", () => {
+    if (accessToken) entrar();
+
+    // ---------- Clientes ----------
+    const STATUS_LABEL = { active: ["on", "Ativo"], pending: ["warn", "Aguardando confirmação"], inactive: ["off", "Inativo"] };
+
+    async function carregarAssinantes() {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/subscribers`, { headers: apiHeaders() });
+      const data = await res.json();
+      if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
+      if (!data.ok) throw new Error(data.error);
+
+      const wrap = document.getElementById("admin-subscribers");
+      wrap.innerHTML = "";
+      if (!data.subscribers.length) {
+        wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhum assinante ainda.</p>`;
+        return;
+      }
+      data.subscribers.forEach((s) => {
+        const [statusClass, statusLabel] = STATUS_LABEL[s.status] || ["off", s.status];
+        const row = document.createElement("div");
+        row.className = "data-row";
+        row.innerHTML = `
+          <div class="main">
+            <div class="name">${s.guardian_name} — ${s.child_name || "—"}</div>
+            <div class="meta">${s.school || "—"} · Plano R$${s.plan_value}/mês · ${s.payment_method} · Código ${s.redemption_code}</div>
+          </div>
+          <div class="right">
+            <span class="row-status ${statusClass}">${statusLabel}</span>
+            <label class="toggle-switch"><input type="checkbox" ${s.status === "active" ? "checked" : ""}><span class="track"></span></label>
+          </div>`;
+        row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
+          const novoStatus = e.target.checked ? "active" : "inactive";
+          await fetch(`${window.FreshCan.API_URL}/api/admin/subscribers`, {
+            method: "PATCH",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: s.id, status: novoStatus }),
+          });
+          carregarAssinantes();
+        });
+        wrap.appendChild(row);
+      });
+    }
+
+    // ---------- Regras ----------
+    async function carregarRegras() {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/rules`, { headers: apiHeaders() });
+      const data = await res.json();
+      if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
+      if (!data.ok) throw new Error(data.error);
+      document.getElementById("rule-retiradas").value = data.rules.redemptions_per_cycle;
+      document.getElementById("rule-validade").value = data.rules.balance_validity_days;
+    }
+
+    document.getElementById("save-rules").addEventListener("click", async () => {
+      const redemptionsPerCycle = document.getElementById("rule-retiradas").value;
+      const balanceValidityDays = document.getElementById("rule-validade").value;
+      await fetch(`${window.FreshCan.API_URL}/api/admin/rules`, {
+        method: "PUT",
+        headers: apiHeaders(),
+        body: JSON.stringify({ redemptionsPerCycle, balanceValidityDays }),
+      });
       document.getElementById("rules-saved").style.display = "inline";
+      setTimeout(() => { document.getElementById("rules-saved").style.display = "none"; }, 2500);
     });
 
+    // ---------- Categorias ----------
     const ALCOHOL_CATEGORIES = ["drinks", "vinho"];
-    const wrap = document.getElementById("admin-products");
-    if (window.PRODUCT_CATEGORIES && wrap) {
+
+    async function carregarCategorias() {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/categories`, { headers: apiHeaders() });
+      const data = await res.json();
+      if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
+      if (!data.ok) throw new Error(data.error);
+
+      const enabledById = Object.fromEntries(data.categories.map((c) => [c.category_id, c.enabled]));
+      const wrap = document.getElementById("admin-products");
+      wrap.innerHTML = "";
+      if (!window.PRODUCT_CATEGORIES) return;
       window.PRODUCT_CATEGORIES.forEach((cat) => {
         const count = window.PRODUCTS.filter((p) => p.category === cat.id).length;
         const isAlcohol = ALCOHOL_CATEGORIES.includes(cat.id);
+        const enabled = !!enabledById[cat.id];
         const row = document.createElement("div");
         row.className = "data-row";
         row.innerHTML = `
@@ -180,9 +267,17 @@
             <div class="meta">${count} produto${count === 1 ? "" : "s"} no catálogo</div>
           </div>
           <div class="right">
-            <span class="row-status ${isAlcohol ? "warn" : "on"}">${isAlcohol ? "Contém álcool" : "Ativo"}</span>
-            <label class="toggle-switch"><input type="checkbox" ${isAlcohol ? "" : "checked"}><span class="track"></span></label>
+            <span class="row-status ${isAlcohol ? "warn" : enabled ? "on" : "off"}">${isAlcohol ? "Contém álcool" : enabled ? "Ativo" : "Inativo"}</span>
+            <label class="toggle-switch"><input type="checkbox" ${enabled ? "checked" : ""}><span class="track"></span></label>
           </div>`;
+        row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/categories`, {
+            method: "PATCH",
+            headers: apiHeaders(),
+            body: JSON.stringify({ categoryId: cat.id, enabled: e.target.checked }),
+          });
+          carregarCategorias();
+        });
         wrap.appendChild(row);
       });
     }

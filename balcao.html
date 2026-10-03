@@ -64,24 +64,23 @@
       </div>
 
       <div id="lookup-result" class="lookup-result reveal" hidden>
-        <div style="text-align:right; margin-bottom:10px;">
-          <span class="demo-tag">Resultado de exemplo</span>
-        </div>
         <div class="lookup-child">
           <div class="avatar">🧒</div>
           <div>
-            <h4>[nome da criança]</h4>
-            <p>Responsável: [nome do responsável] · Colégio Bom Jesus Vivapark</p>
+            <h4 id="b-child-name">—</h4>
+            <p id="b-meta">—</p>
           </div>
         </div>
         <dl class="panel-fields" style="margin-bottom:20px;">
           <div class="panel-field"><dt>Status do código</dt><dd><span class="status-tag">Válido</span></dd></div>
-          <div class="panel-field"><dt>Produtos autorizados</dt><dd>Iogurtes, Panquecas, Suco</dd></div>
-          <div class="panel-field"><dt>Saldo restante</dt><dd>3 de [quantidade de retiradas]</dd></div>
+          <div class="panel-field"><dt>Saldo restante</dt><dd id="b-saldo">—</dd></div>
         </dl>
+        <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Qual produto a criança está retirando?</p>
+        <div id="b-categorias" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
         <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Confira se a criança na sua frente é a mesma da foto antes de confirmar.</p>
-        <button id="confirm-redeem" class="btn btn-coral btn-block">Confirmar retirada</button>
-        <p id="redeem-confirmed" style="display:none; text-align:center; color:#1a7a4c; font-weight:600; font-size:13.5px; margin-top:14px;">✅ Retirada registrada (exemplo) — saldo debitado neste protótipo, sem afetar dados reais.</p>
+        <button id="confirm-redeem" class="btn btn-coral btn-block" disabled>Confirmar retirada</button>
+        <p id="redeem-error" style="display:none; text-align:center; color:#b42318; font-weight:600; font-size:13.5px; margin-top:14px;"></p>
+        <p id="redeem-confirmed" style="display:none; text-align:center; color:#1a7a4c; font-weight:600; font-size:13.5px; margin-top:14px;">✅ Retirada registrada — saldo debitado.</p>
       </div>
 
     </div>
@@ -99,9 +98,12 @@
   document.addEventListener("DOMContentLoaded", () => {
     const gate = document.getElementById("balcao-gate");
     const app = document.getElementById("balcao-app");
+    let pinAtual = null;
+
     document.getElementById("gate-submit").addEventListener("click", () => {
       const pin = document.getElementById("gate-pin").value;
       if (pin.length === 4) {
+        pinAtual = pin;
         gate.hidden = true;
         app.hidden = false;
       } else {
@@ -113,19 +115,78 @@
     const result = document.getElementById("lookup-result");
     const confirmBtn = document.getElementById("confirm-redeem");
     const confirmed = document.getElementById("redeem-confirmed");
+    const redeemError = document.getElementById("redeem-error");
+    const categoriasWrap = document.getElementById("b-categorias");
+    let categoriaSelecionada = null;
+    let codigoAtual = null;
 
-    document.getElementById("code-submit").addEventListener("click", () => {
-      const code = document.getElementById("code-input").value.trim();
+    async function chamarBalcao(body) {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/balcao`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pin: pinAtual, ...body }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível consultar agora.");
+      return data;
+    }
+
+    function renderCategorias(categoriasAutorizadas) {
+      categoriasWrap.innerHTML = "";
+      categoriaSelecionada = null;
+      confirmBtn.disabled = true;
+      categoriasAutorizadas.forEach((id) => {
+        const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === id);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-outline btn-sm";
+        btn.textContent = cat?.label || id;
+        btn.addEventListener("click", () => {
+          categoriaSelecionada = id;
+          confirmBtn.disabled = false;
+          categoriasWrap.querySelectorAll("button").forEach((b) => b.classList.remove("btn-coral"));
+          btn.classList.add("btn-coral");
+        });
+        categoriasWrap.appendChild(btn);
+      });
+    }
+
+    document.getElementById("code-submit").addEventListener("click", async () => {
+      const code = document.getElementById("code-input").value.trim().toUpperCase();
       if (!code) return;
-      empty.hidden = true;
-      result.hidden = false;
-      confirmBtn.style.display = "block";
+      redeemError.style.display = "none";
       confirmed.style.display = "none";
+      try {
+        const data = await chamarBalcao({ codigo: code });
+        codigoAtual = code;
+        document.getElementById("b-child-name").textContent = data.assinante.childName || "—";
+        document.getElementById("b-meta").textContent = `Responsável: ${data.assinante.guardianName || "—"} · ${data.assinante.school || "—"}`;
+        document.getElementById("b-saldo").textContent = `${data.saldo.restantes} de ${data.saldo.total}`;
+        renderCategorias(data.categoriasAutorizadas || []);
+        empty.hidden = true;
+        result.hidden = false;
+        confirmBtn.style.display = "block";
+      } catch (err) {
+        empty.hidden = true;
+        result.hidden = false;
+        confirmBtn.style.display = "none";
+        categoriasWrap.innerHTML = "";
+        redeemError.textContent = err.message;
+        redeemError.style.display = "block";
+      }
     });
 
-    confirmBtn.addEventListener("click", () => {
-      confirmBtn.style.display = "none";
-      confirmed.style.display = "block";
+    confirmBtn.addEventListener("click", async () => {
+      if (!categoriaSelecionada) return;
+      redeemError.style.display = "none";
+      try {
+        await chamarBalcao({ codigo: codigoAtual, categoryId: categoriaSelecionada });
+        confirmBtn.style.display = "none";
+        confirmed.style.display = "block";
+      } catch (err) {
+        redeemError.textContent = err.message;
+        redeemError.style.display = "block";
+      }
     });
   });
 </script>

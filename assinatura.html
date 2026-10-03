@@ -231,6 +231,11 @@
             <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Exigido pela Asaas para emitir o boleto da assinatura.</p>
           </div>
           <div class="form-field full">
+            <label for="s-email">E-mail do responsável</label>
+            <input type="email" id="s-email" placeholder="voce@email.com" required>
+            <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Enviamos o código de retirada/acesso ao painel por e-mail além de mostrar aqui na tela.</p>
+          </div>
+          <div class="form-field full">
             <label for="s-child">Nome da criança</label>
             <input type="text" id="s-child" required>
           </div>
@@ -281,7 +286,12 @@
       <div class="form-success" id="subscription-success">
         <div class="ico">✅</div>
         <h3>Recebemos seu interesse!</h3>
-        <p>Abrimos o WhatsApp da FreshCan com seus dados preenchidos. Como ainda não temos envio automático de foto, anexe a foto da criança diretamente nessa conversa do WhatsApp. Nosso time confirma a assinatura por lá e envia o código de validação para esse número.</p>
+        <p>Abrimos o WhatsApp da FreshCan com seus dados preenchidos. Como ainda não temos envio automático de foto, anexe a foto da criança diretamente nessa conversa do WhatsApp. Nosso time confirma a assinatura por lá.</p>
+        <div id="codigo-gerado" style="display:none; margin-top:16px; padding:16px; background:var(--cream); border-radius:12px; text-align:center;">
+          <p style="font-weight:600; margin-bottom:6px;">Seu código de retirada e de acesso ao painel:</p>
+          <p id="codigo-gerado-valor" style="font-size:26px; font-weight:800; letter-spacing:4px;"></p>
+          <p style="font-size:12px; color:var(--ink-soft); margin-top:6px;">Também enviamos esse código para o seu e-mail. Guarde-o — ele libera a retirada no balcão e o acesso ao <a href="painel.html" style="text-decoration:underline;">painel do responsável</a>.</p>
+        </div>
         <div id="payment-result" style="display:none; margin-top:16px; padding:16px; background:var(--cream); border-radius:12px;">
           <div id="result-boleto" style="display:none;">
             <p style="font-weight:600; margin-bottom:8px;">🧾 Seu boleto já foi gerado:</p>
@@ -523,7 +533,7 @@
         .forEach((cat) => {
           const label = document.createElement("label");
           label.className = "product-check";
-          label.innerHTML = `<input type="checkbox" name="allowed-category" value="${cat.label}"><span>${cat.label}</span>`;
+          label.innerHTML = `<input type="checkbox" name="allowed-category" value="${cat.id}"><span>${cat.label}</span>`;
           productsWrap.appendChild(label);
         });
     }
@@ -535,7 +545,7 @@
     const paymentResult = document.getElementById("payment-result");
     const LABEL_GERANDO = { Boleto: "Gerando boleto...", Pix: "Gerando Pix...", "Cartão de crédito": "Abrindo checkout..." };
 
-    async function gerarCobranca({ nome, cpf, whatsapp, crianca, escola, valor, metodo }) {
+    async function gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor, metodo, categoriasPermitidas }) {
       const res = await fetch(`${window.FreshCan.API_URL}/api/criar-assinatura`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -543,10 +553,12 @@
           nome,
           cpf,
           whatsapp,
+          email,
           criancaNome: crianca,
           escola,
           valor,
           metodo,
+          categoriasPermitidas,
           descricao: `Assinatura escolar FreshCan — ${crianca} — ${escola}`,
         }),
       });
@@ -593,6 +605,7 @@
       const nome = document.getElementById("s-name").value;
       const cpf = document.getElementById("s-cpf").value;
       const whatsapp = document.getElementById("s-phone").value;
+      const email = document.getElementById("s-email").value;
       const crianca = document.getElementById("s-child").value;
       const escola = document.getElementById("s-school").value;
       const planoInput = document.querySelector('input[name="plan"]:checked');
@@ -605,13 +618,14 @@
       const plano = planoInput.value;
       const valorPlano = Number(planoInput.dataset.valor || 0);
       const pagamento = document.querySelector('input[name="payment"]:checked')?.value || "[forma de pagamento não selecionada]";
-      const categorias = Array.from(document.querySelectorAll('input[name="allowed-category"]:checked')).map((i) => i.value);
+      const categoriaIds = Array.from(document.querySelectorAll('input[name="allowed-category"]:checked')).map((i) => i.value);
+      const categorias = categoriaIds.map((id) => window.PRODUCT_CATEGORIES.find((c) => c.id === id)?.label || id);
 
       let cobranca = null;
       submitBtn.disabled = true;
       submitBtn.textContent = LABEL_GERANDO[pagamento] || "Enviando...";
       try {
-        cobranca = await gerarCobranca({ nome, cpf, whatsapp, crianca, escola, valor: valorPlano, metodo: pagamento });
+        cobranca = await gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor: valorPlano, metodo: pagamento, categoriasPermitidas: categoriaIds });
       } catch (err) {
         errorMsg.textContent = `Não deu pra gerar a cobrança automaticamente agora (${err.message}). Vamos te enviar por WhatsApp assim que possível — segue o pedido pra nossa equipe.`;
         errorMsg.style.display = "block";
@@ -637,6 +651,10 @@
       success.classList.add("is-visible");
 
       if (cobranca) mostrarResultadoPagamento(cobranca);
+      if (cobranca?.codigo) {
+        document.getElementById("codigo-gerado-valor").textContent = cobranca.codigo;
+        document.getElementById("codigo-gerado").style.display = "block";
+      }
     });
   });
 </script>

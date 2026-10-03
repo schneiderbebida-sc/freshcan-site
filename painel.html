@@ -52,43 +52,47 @@
 <section class="section" style="padding-top:60px;">
   <div class="container">
 
-    <div class="integration-banner reveal" style="max-width:760px; margin-left:auto; margin-right:auto;">
-      <span class="ico">⚠️</span>
-      <div>
-        <h4>Isto é uma pré-visualização</h4>
-        <p>Este painel ainda não está conectado a um login real nem aos dados da sua assinatura. Os valores abaixo são apenas um exemplo de como a tela vai funcionar quando a integração estiver pronta.</p>
+    <!-- Portão de acesso -->
+    <div id="painel-gate" class="gate-shell reveal">
+      <div class="ico">🔑</div>
+      <h2>Acesso ao painel</h2>
+      <p>Digite o código de retirada que você recebeu por e-mail (ou na tela) ao confirmar a assinatura.</p>
+      <div class="form-field">
+        <label for="gate-codigo">Código</label>
+        <input type="text" id="gate-codigo" maxlength="6" style="text-transform:uppercase;" placeholder="EX: AB12CD">
       </div>
+      <button id="gate-submit" class="btn btn-coral btn-block">Entrar</button>
+      <p id="gate-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
     </div>
 
-    <div class="panel-shell reveal">
+    <div class="panel-shell reveal" id="painel-app" hidden>
 
       <div class="panel-card">
         <div class="panel-card-head">
           <div class="lookup-child" style="margin-bottom:0;">
             <div class="avatar">🧒</div>
             <div>
-              <h3 style="margin-bottom:2px;">[nome da criança]</h3>
-              <p>Responsável: [nome do responsável]</p>
+              <h3 style="margin-bottom:2px;" id="p-child-name">—</h3>
+              <p id="p-guardian-name">Responsável: —</p>
             </div>
           </div>
-          <span class="demo-tag">Dados de exemplo</span>
         </div>
         <dl class="panel-fields">
           <div class="panel-field">
             <dt>Status</dt>
-            <dd><span class="status-tag">Ativa</span></dd>
+            <dd><span class="status-tag" id="p-status">—</span></dd>
           </div>
           <div class="panel-field">
             <dt>Plano</dt>
-            <dd>R$99 / mês</dd>
+            <dd id="p-plan">—</dd>
           </div>
           <div class="panel-field">
             <dt>Forma de pagamento</dt>
-            <dd>Pix</dd>
+            <dd id="p-payment">—</dd>
           </div>
           <div class="panel-field">
-            <dt>Próxima renovação</dt>
-            <dd>[data de renovação]</dd>
+            <dt>Escola</dt>
+            <dd id="p-school">—</dd>
           </div>
         </dl>
       </div>
@@ -99,10 +103,10 @@
             <h3>Produtos liberados para o(a) filho(a)</h3>
             <p>Dentro do catálogo ativo pela FreshCan, você escolhe o que ele(a) pode retirar.</p>
           </div>
-          <span class="demo-tag">Dados de exemplo</span>
         </div>
         <div class="product-check-grid" id="p-products"></div>
-        <p class="plan-note" style="margin-top:16px;">🧪 Alterar aqui ainda não salva de verdade — essa tela mostra como a edição vai funcionar depois que o painel estiver conectado ao sistema.</p>
+        <button class="btn btn-outline" style="margin-top:14px;" id="p-save-categorias">Salvar escolhas</button>
+        <span id="p-categorias-saved" style="display:none; margin-left:12px; color:#1a7a4c; font-size:13px; font-weight:600;">✅ Salvo</span>
       </div>
 
       <div class="panel-card">
@@ -111,51 +115,25 @@
             <h3>Saldo de retiradas</h3>
             <p>Quantas retiradas já foram usadas neste ciclo.</p>
           </div>
-          <span class="demo-tag">Dados de exemplo</span>
         </div>
         <div class="balance-numbers">
-          <span class="big">3</span>
-          <span class="total">de [quantidade de retiradas] retiradas usadas</span>
+          <span class="big" id="p-saldo-usado">0</span>
+          <span class="total" id="p-saldo-total">de 0 retiradas usadas</span>
         </div>
-        <div class="meter-track"><div class="meter-fill" style="width:75%;"></div></div>
+        <div class="meter-track"><div class="meter-fill" id="p-saldo-meter" style="width:0%;"></div></div>
       </div>
 
       <div class="panel-card">
         <div class="panel-card-head">
           <div>
             <h3>Histórico de consumo</h3>
-            <p>O que já foi retirado com o código enviado pelo WhatsApp.</p>
+            <p>O que já foi retirado com o código no balcão.</p>
           </div>
-          <span class="demo-tag">Dados de exemplo</span>
         </div>
-        <div class="history-list">
-          <div class="history-item">
-            <div>
-              <div class="product">[produto elegível] (exemplo)</div>
-              <div class="meta">05/10/2026 · Colégio Bom Jesus Viva Park</div>
-            </div>
-            <span class="history-status">Retirado</span>
-          </div>
-          <div class="history-item">
-            <div>
-              <div class="product">[produto elegível] (exemplo)</div>
-              <div class="meta">28/09/2026 · Colégio Bom Jesus Viva Park</div>
-            </div>
-            <span class="history-status">Retirado</span>
-          </div>
-          <div class="history-item">
-            <div>
-              <div class="product">[produto elegível] (exemplo)</div>
-              <div class="meta">21/09/2026 · Colégio Bom Jesus Viva Park</div>
-            </div>
-            <span class="history-status">Retirado</span>
-          </div>
+        <div class="history-list" id="p-historico">
+          <p style="font-size:13px; color:var(--ink-soft);">Nenhuma retirada registrada ainda.</p>
         </div>
       </div>
-
-      <p class="plan-note" style="margin-top:6px;">
-        Depois que o login e a integração estiverem configurados, este painel vai mostrar o saldo e o histórico reais da sua assinatura — nunca dados de exemplo.
-      </p>
     </div>
 
   </div>
@@ -235,19 +213,95 @@
     document.getElementById("cta-whatsapp").href = link;
 
     const EXCLUDED_CATEGORIES = ["drinks", "vinho"];
-    const DEMO_ALLOWED = ["iogurtes", "panquecas", "suco"];
-    const wrap = document.getElementById("p-products");
-    if (window.PRODUCT_CATEGORIES && wrap) {
+    const productsWrap = document.getElementById("p-products");
+
+    function renderProducts(allowedCategories) {
+      productsWrap.innerHTML = "";
+      if (!window.PRODUCT_CATEGORIES) return;
       window.PRODUCT_CATEGORIES
         .filter((cat) => !EXCLUDED_CATEGORIES.includes(cat.id))
         .forEach((cat) => {
           const label = document.createElement("label");
           label.className = "product-check";
-          const checked = DEMO_ALLOWED.includes(cat.id) ? "checked" : "";
-          label.innerHTML = `<input type="checkbox" ${checked}><span>${cat.label}</span>`;
-          wrap.appendChild(label);
+          const checked = allowedCategories.includes(cat.id) ? "checked" : "";
+          label.innerHTML = `<input type="checkbox" value="${cat.id}" ${checked}><span>${cat.label}</span>`;
+          productsWrap.appendChild(label);
         });
     }
+
+    const STATUS_LABEL = { active: "Ativa", pending: "Aguardando confirmação", inactive: "Inativa" };
+
+    function renderPainel(data) {
+      const a = data.assinante;
+      document.getElementById("p-child-name").textContent = a.childName || "—";
+      document.getElementById("p-guardian-name").textContent = `Responsável: ${a.guardianName || "—"}`;
+      document.getElementById("p-status").textContent = STATUS_LABEL[a.status] || a.status;
+      document.getElementById("p-plan").textContent = `R$${a.planValue} / mês`;
+      document.getElementById("p-payment").textContent = a.paymentMethod || "—";
+      document.getElementById("p-school").textContent = a.school || "—";
+      renderProducts(a.allowedCategories || []);
+
+      const saldo = data.saldo;
+      document.getElementById("p-saldo-usado").textContent = saldo.usadas;
+      document.getElementById("p-saldo-total").textContent = `de ${saldo.total} retiradas usadas`;
+      document.getElementById("p-saldo-meter").style.width = `${saldo.total ? Math.min(100, (saldo.usadas / saldo.total) * 100) : 0}%`;
+
+      const historicoWrap = document.getElementById("p-historico");
+      if (!data.historico.length) {
+        historicoWrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhuma retirada registrada ainda.</p>`;
+      } else {
+        historicoWrap.innerHTML = data.historico
+          .map((h) => {
+            const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === h.category_id);
+            const data = new Date(h.redeemed_at).toLocaleDateString("pt-BR");
+            return `<div class="history-item"><div><div class="product">${cat?.label || h.category_id}</div><div class="meta">${data}</div></div><span class="history-status">Retirado</span></div>`;
+          })
+          .join("");
+      }
+    }
+
+    let codigoAtual = null;
+
+    async function chamarPainel(body) {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/painel`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível acessar o painel.");
+      return data;
+    }
+
+    document.getElementById("gate-submit").addEventListener("click", async () => {
+      const codigo = document.getElementById("gate-codigo").value.trim().toUpperCase();
+      const errorEl = document.getElementById("gate-error");
+      errorEl.style.display = "none";
+      if (!codigo) return;
+      try {
+        const data = await chamarPainel({ codigo });
+        codigoAtual = codigo;
+        renderPainel(data);
+        document.getElementById("painel-gate").hidden = true;
+        document.getElementById("painel-app").hidden = false;
+      } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.style.display = "block";
+      }
+    });
+
+    document.getElementById("p-save-categorias").addEventListener("click", async () => {
+      const categoriasPermitidas = Array.from(productsWrap.querySelectorAll("input:checked")).map((i) => i.value);
+      try {
+        const data = await chamarPainel({ codigo: codigoAtual, acao: "atualizar-categorias", categoriasPermitidas });
+        renderPainel(data);
+        const savedEl = document.getElementById("p-categorias-saved");
+        savedEl.style.display = "inline";
+        setTimeout(() => { savedEl.style.display = "none"; }, 2500);
+      } catch (err) {
+        alert(err.message);
+      }
+    });
   });
 </script>
 </body>
