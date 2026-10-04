@@ -134,6 +134,31 @@
         <div id="admin-categorias"></div>
       </div>
 
+      <!-- Escolas / pontos de retirada — admin -->
+      <div class="internal-section reveal" data-roles="admin">
+        <div class="internal-section-head">
+          <div>
+            <h3>Escolas / pontos de retirada</h3>
+            <p>Cadastre aqui as escolas participantes. Só as ativas aparecem no formulário de assinatura.</p>
+          </div>
+        </div>
+        <div id="admin-escolas"></div>
+        <div class="form-shell" style="padding:24px; margin-top:20px;">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="nova-escola-codigo">Código</label>
+              <input type="text" id="nova-escola-codigo" placeholder="Ex: colegio-xyz">
+            </div>
+            <div class="form-field">
+              <label for="nova-escola-nome">Nome</label>
+              <input type="text" id="nova-escola-nome" placeholder="Ex: Colégio XYZ">
+            </div>
+          </div>
+          <button class="btn btn-outline" style="margin-top:6px;" id="add-escola">Adicionar escola</button>
+          <p id="escola-erro" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
+        </div>
+      </div>
+
       <!-- Produtos e preços — admin -->
       <div class="internal-section reveal" data-roles="admin">
         <div class="internal-section-head">
@@ -206,7 +231,7 @@
 
     async function carregarTudo() {
       if (currentRole === "admin") {
-        await Promise.all([carregarAssinantes(), carregarRegras(), carregarCategorias(), carregarProdutos()]);
+        await Promise.all([carregarAssinantes(), carregarRegras(), carregarCategorias(), carregarProdutos(), carregarEscolas()]);
       }
     }
 
@@ -440,6 +465,69 @@
         document.getElementById("novo-produto-nome").value = "";
         document.getElementById("novo-produto-preco").value = "";
         carregarProdutos();
+      } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.style.display = "block";
+      }
+    });
+
+    // ---------- Escolas / pontos de retirada ----------
+    async function carregarEscolas() {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, { headers: apiHeaders() });
+      const data = await res.json();
+      if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
+      if (!data.ok) throw new Error(data.error);
+
+      const wrap = document.getElementById("admin-escolas");
+      wrap.innerHTML = "";
+      if (!data.schools.length) {
+        wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhuma escola cadastrada ainda.</p>`;
+        return;
+      }
+      data.schools.forEach((s) => {
+        const row = document.createElement("div");
+        row.className = "data-row";
+        row.innerHTML = `
+          <div class="main">
+            <div class="name">${s.name} <span style="color:var(--ink-soft); font-weight:400;">· ${s.id}</span></div>
+          </div>
+          <div class="right">
+            <span class="row-status ${s.active ? "on" : "off"}">${s.active ? "Ativo" : "Inativo"}</span>
+            <label class="toggle-switch"><input type="checkbox" ${s.active ? "checked" : ""}><span class="track"></span></label>
+          </div>`;
+        row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, {
+            method: "PATCH",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: s.id, active: e.target.checked }),
+          });
+          carregarEscolas();
+        });
+        wrap.appendChild(row);
+      });
+    }
+
+    document.getElementById("add-escola").addEventListener("click", async () => {
+      const erroEl = document.getElementById("escola-erro");
+      erroEl.style.display = "none";
+      const id = document.getElementById("nova-escola-codigo").value.trim();
+      const name = document.getElementById("nova-escola-nome").value.trim();
+      if (!id || !name) {
+        erroEl.textContent = "Preencha código e nome da escola.";
+        erroEl.style.display = "block";
+        return;
+      }
+      try {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, {
+          method: "POST",
+          headers: apiHeaders(),
+          body: JSON.stringify({ id, name }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível cadastrar a escola.");
+        document.getElementById("nova-escola-codigo").value = "";
+        document.getElementById("nova-escola-nome").value = "";
+        carregarEscolas();
       } catch (err) {
         erroEl.textContent = err.message;
         erroEl.style.display = "block";

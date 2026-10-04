@@ -242,8 +242,7 @@
           <div class="form-field full">
             <label for="s-school">Escola da criança</label>
             <select id="s-school" required>
-              <option value="">Selecione a escola...</option>
-              <option value="Colégio Bom Jesus Vivapark">Colégio Bom Jesus Vivapark</option>
+              <option value="">Carregando escolas...</option>
             </select>
           </div>
           <div class="form-field full">
@@ -553,6 +552,20 @@
         photoLabel.textContent = "Não foi possível processar essa foto — escolha outra.";
       }
     });
+
+    /* --- Escolas participantes (cadastradas pelo admin em admin.html) --- */
+    (async () => {
+      const schoolSelect = document.getElementById("s-school");
+      try {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/schools`);
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível carregar as escolas.");
+        schoolSelect.innerHTML = `<option value="">Selecione a escola...</option>` +
+          data.schools.map((s) => `<option value="${s.name}">${s.name}</option>`).join("");
+      } catch (err) {
+        schoolSelect.innerHTML = `<option value="">Não foi possível carregar as escolas — recarregue a página</option>`;
+      }
+    })();
 
     /* --- Categorias de produtos liberadas (admin controla o catálogo geral; pai escolhe aqui o que o filho pode pegar) --- */
     const EXCLUDED_CATEGORIES = ["drinks", "vinho"]; // bebidas alcoólicas nunca entram na assinatura escolar
