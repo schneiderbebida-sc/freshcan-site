@@ -143,7 +143,8 @@ function initMenuSearch() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await window.FreshCanMenuReady;
   renderFeatured();
   renderMenuJumpLinks();
   renderMenuAccordion();

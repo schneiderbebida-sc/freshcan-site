@@ -187,7 +187,8 @@ function bindCartOpeners() {
 window.FreshCan = window.FreshCan || {};
 Object.assign(window.FreshCan, { addToCart, renderCart, bindAddButtons });
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await window.FreshCanMenuReady;
   ensureCartDOM();
   renderCart();
   bindCartOpeners();
