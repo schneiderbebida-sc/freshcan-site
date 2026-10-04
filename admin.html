@@ -612,7 +612,7 @@
 
     // ---------- Categorias do cardápio ----------
     async function carregarMenuCategorias() {
-      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu-categories`, { headers: apiHeaders() });
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, { headers: apiHeaders() });
       const data = await res.json();
       if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
       if (!data.ok) throw new Error(data.error);
@@ -634,7 +634,7 @@
               <label class="toggle-switch"><input type="checkbox" ${c.active ? "checked" : ""}><span class="track"></span></label>
             </div>`;
           row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
-            await fetch(`${window.FreshCan.API_URL}/api/admin/menu-categories`, {
+            await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
               method: "PATCH",
               headers: apiHeaders(),
               body: JSON.stringify({ id: c.id, active: e.target.checked }),
@@ -665,7 +665,7 @@
         return;
       }
       try {
-        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu-categories`, {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
           method: "POST",
           headers: apiHeaders(),
           body: JSON.stringify({ id, label }),
@@ -706,7 +706,7 @@
     }
 
     async function carregarMenuProdutos() {
-      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu-products`, { headers: apiHeaders() });
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=products`, { headers: apiHeaders() });
       const data = await res.json();
       if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
       if (!data.ok) throw new Error(data.error);
@@ -733,7 +733,7 @@
             <label class="toggle-switch"><input type="checkbox" ${p.active ? "checked" : ""}><span class="track"></span></label>
           </div>`;
         row.querySelector(".menu-produto-preco").addEventListener("change", async (e) => {
-          await fetch(`${window.FreshCan.API_URL}/api/admin/menu-products`, {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=products`, {
             method: "PATCH",
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id, price: e.target.value }),
@@ -741,7 +741,7 @@
           carregarMenuProdutos();
         });
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
-          await fetch(`${window.FreshCan.API_URL}/api/admin/menu-products`, {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=products`, {
             method: "PATCH",
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id, active: e.target.checked }),
@@ -770,7 +770,7 @@
         let fotoBase64 = null;
         if (fotoInput.files[0]) fotoBase64 = await resizeImageFile(fotoInput.files[0]);
 
-        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu-products`, {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=products`, {
           method: "POST",
           headers: apiHeaders(),
           body: JSON.stringify({ id, categoryId, name, description, price, fotoBase64 }),
