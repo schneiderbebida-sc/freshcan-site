@@ -15,6 +15,7 @@
   <div class="nav-inner">
     <a href="index.html" class="logo">fresh<span class="dot">·</span>can</a>
     <div class="nav-actions">
+      <span class="demo-tag" id="role-tag" style="background:rgba(255,255,255,0.14); color:#fff; display:none;"></span>
       <span class="demo-tag" style="background:rgba(255,255,255,0.14); color:#fff;">Área interna · admin</span>
     </div>
   </div>
@@ -51,7 +52,43 @@
     <!-- Painel (escondido até o login ser confirmado) -->
     <div id="admin-app" hidden>
 
-      <div class="internal-section reveal">
+      <!-- Balcão de retirada — visível para admin e atendente -->
+      <div class="internal-section reveal" data-roles="admin,atendente">
+        <div class="internal-section-head">
+          <div>
+            <h3>Balcão de retirada</h3>
+            <p>Valide o código, confira a foto e libere o produto de acordo com o saldo disponível.</p>
+          </div>
+        </div>
+        <div class="lookup-bar">
+          <input type="text" id="balcao-code-input" placeholder="CÓDIGO DO CLIENTE" maxlength="10">
+          <button id="balcao-code-submit" class="btn btn-primary btn-sm">Validar</button>
+        </div>
+        <div id="balcao-empty" style="text-align:center; color:var(--ink-soft); font-size:13.5px;">
+          Digite o código do cliente acima para consultar o saldo e liberar a retirada.
+        </div>
+        <div id="balcao-result" class="lookup-result reveal" hidden>
+          <div class="lookup-child">
+            <div class="avatar" id="balcao-avatar">🧒</div>
+            <div>
+              <h4 id="balcao-child-name">—</h4>
+              <p id="balcao-meta">—</p>
+            </div>
+          </div>
+          <dl class="panel-fields" style="margin-bottom:20px;">
+            <div class="panel-field"><dt>Saldo restante</dt><dd id="balcao-saldo">—</dd></div>
+          </dl>
+          <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Qual produto a criança está retirando?</p>
+          <div id="balcao-produtos" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
+          <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Confira se a criança na sua frente é a mesma da foto antes de confirmar.</p>
+          <button id="balcao-confirm" class="btn btn-coral btn-block" disabled>Confirmar retirada</button>
+          <p id="balcao-error" style="display:none; text-align:center; color:#b42318; font-weight:600; font-size:13.5px; margin-top:14px;"></p>
+          <p id="balcao-confirmed" style="display:none; text-align:center; color:#1a7a4c; font-weight:600; font-size:13.5px; margin-top:14px;">✅ Retirada registrada — saldo debitado.</p>
+        </div>
+      </div>
+
+      <!-- Clientes — admin -->
+      <div class="internal-section reveal" data-roles="admin">
         <div class="internal-section-head">
           <div>
             <h3>Clientes</h3>
@@ -61,7 +98,8 @@
         <div id="admin-subscribers"></div>
       </div>
 
-      <div class="internal-section reveal">
+      <!-- Regras de saldo — admin -->
+      <div class="internal-section reveal" data-roles="admin">
         <div class="internal-section-head">
           <div>
             <h3>Regras de saldo</h3>
@@ -71,23 +109,21 @@
         <div class="form-shell" style="padding:28px; margin-top:0;">
           <div class="form-grid">
             <div class="form-field">
-              <label for="rule-retiradas">Quantidade de retiradas por ciclo</label>
-              <input type="number" id="rule-retiradas" placeholder="Ex: 4">
-            </div>
-            <div class="form-field">
               <label for="rule-validade">Validade do saldo (dias)</label>
               <input type="number" id="rule-validade" placeholder="Ex: 90">
             </div>
           </div>
+          <p style="font-size:12.5px; color:var(--ink-soft); margin-top:6px;">O saldo disponível por ciclo é o valor do plano de cada assinante — não é mais uma quantidade de retiradas.</p>
           <button class="btn btn-outline" style="margin-top:6px;" id="save-rules">Salvar regras</button>
           <span id="rules-saved" style="display:none; margin-left:12px; color:#1a7a4c; font-size:13px; font-weight:600;">✅ Salvo</span>
         </div>
       </div>
 
-      <div class="internal-section reveal">
+      <!-- Categorias do catálogo — admin -->
+      <div class="internal-section reveal" data-roles="admin">
         <div class="internal-section-head">
           <div>
-            <h3>Produtos</h3>
+            <h3>Categorias do catálogo</h3>
             <p>Catálogo atual do site. Ative só o que entra na assinatura escolar.</p>
           </div>
         </div>
@@ -95,7 +131,40 @@
           <span>🚫</span>
           <span><strong>Bebidas alcoólicas (Drinks &amp; Spritz, Vinho)</strong> ficam fora da lista por padrão e não devem ser ativadas para a assinatura escolar.</span>
         </div>
-        <div id="admin-products"></div>
+        <div id="admin-categorias"></div>
+      </div>
+
+      <!-- Produtos e preços — admin -->
+      <div class="internal-section reveal" data-roles="admin">
+        <div class="internal-section-head">
+          <div>
+            <h3>Produtos e preços</h3>
+            <p>Catálogo usado pelo atendente no balcão. O preço aqui é o que desconta do saldo do cliente.</p>
+          </div>
+        </div>
+        <div id="admin-produtos"></div>
+        <div class="form-shell" style="padding:24px; margin-top:20px;">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="novo-produto-codigo">Código</label>
+              <input type="text" id="novo-produto-codigo" placeholder="Ex: suco-laranja">
+            </div>
+            <div class="form-field">
+              <label for="novo-produto-nome">Nome</label>
+              <input type="text" id="novo-produto-nome" placeholder="Ex: Suco de Laranja">
+            </div>
+            <div class="form-field">
+              <label for="novo-produto-categoria">Categoria</label>
+              <select id="novo-produto-categoria"></select>
+            </div>
+            <div class="form-field">
+              <label for="novo-produto-preco">Preço (R$)</label>
+              <input type="number" id="novo-produto-preco" step="0.01" min="0" placeholder="Ex: 9.90">
+            </div>
+          </div>
+          <button class="btn btn-outline" style="margin-top:6px;" id="add-produto">Adicionar produto</button>
+          <p id="produto-erro" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
+        </div>
       </div>
 
     </div>
@@ -118,19 +187,37 @@
     const app = document.getElementById("admin-app");
     const gateError = document.getElementById("gate-error");
     let accessToken = sessionStorage.getItem("freshcan-admin-token");
+    let currentRole = null;
 
     function apiHeaders() {
       return { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
     }
 
+    function aplicarRole(role) {
+      currentRole = role;
+      document.querySelectorAll("[data-roles]").forEach((el) => {
+        const papeis = el.dataset.roles.split(",");
+        el.hidden = !papeis.includes(role);
+      });
+      const roleTag = document.getElementById("role-tag");
+      roleTag.textContent = role === "admin" ? "Administrador" : "Atendente de loja";
+      roleTag.style.display = "inline-block";
+    }
+
     async function carregarTudo() {
-      await Promise.all([carregarAssinantes(), carregarRegras(), carregarCategorias()]);
+      if (currentRole === "admin") {
+        await Promise.all([carregarAssinantes(), carregarRegras(), carregarCategorias(), carregarProdutos()]);
+      }
     }
 
     async function entrar() {
       gate.hidden = true;
       app.hidden = false;
       try {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/me`, { headers: apiHeaders() });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Sessão expirada, faça login de novo.");
+        aplicarRole(data.role);
         await carregarTudo();
       } catch (err) {
         sair(err.message);
@@ -218,17 +305,15 @@
       const data = await res.json();
       if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
       if (!data.ok) throw new Error(data.error);
-      document.getElementById("rule-retiradas").value = data.rules.redemptions_per_cycle;
       document.getElementById("rule-validade").value = data.rules.balance_validity_days;
     }
 
     document.getElementById("save-rules").addEventListener("click", async () => {
-      const redemptionsPerCycle = document.getElementById("rule-retiradas").value;
       const balanceValidityDays = document.getElementById("rule-validade").value;
       await fetch(`${window.FreshCan.API_URL}/api/admin/rules`, {
         method: "PUT",
         headers: apiHeaders(),
-        body: JSON.stringify({ redemptionsPerCycle, balanceValidityDays }),
+        body: JSON.stringify({ balanceValidityDays }),
       });
       document.getElementById("rules-saved").style.display = "inline";
       setTimeout(() => { document.getElementById("rules-saved").style.display = "none"; }, 2500);
@@ -244,7 +329,7 @@
       if (!data.ok) throw new Error(data.error);
 
       const enabledById = Object.fromEntries(data.categories.map((c) => [c.category_id, c.enabled]));
-      const wrap = document.getElementById("admin-products");
+      const wrap = document.getElementById("admin-categorias");
       wrap.innerHTML = "";
       if (!window.PRODUCT_CATEGORIES) return;
       window.PRODUCT_CATEGORIES.forEach((cat) => {
@@ -273,6 +358,174 @@
         wrap.appendChild(row);
       });
     }
+
+    // ---------- Produtos e preços ----------
+    function popularSelectCategorias(select) {
+      select.innerHTML = (window.PRODUCT_CATEGORIES || [])
+        .filter((cat) => !ALCOHOL_CATEGORIES.includes(cat.id))
+        .map((cat) => `<option value="${cat.id}">${cat.label}</option>`)
+        .join("");
+    }
+
+    async function carregarProdutos() {
+      popularSelectCategorias(document.getElementById("novo-produto-categoria"));
+
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/products`, { headers: apiHeaders() });
+      const data = await res.json();
+      if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
+      if (!data.ok) throw new Error(data.error);
+
+      const wrap = document.getElementById("admin-produtos");
+      wrap.innerHTML = "";
+      if (!data.products.length) {
+        wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhum produto cadastrado ainda.</p>`;
+        return;
+      }
+      data.products.forEach((p) => {
+        const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === p.category_id);
+        const row = document.createElement("div");
+        row.className = "data-row";
+        row.innerHTML = `
+          <div class="main">
+            <div class="name">${p.name} <span style="color:var(--ink-soft); font-weight:400;">· ${p.id}</span></div>
+            <div class="meta">${cat?.label || p.category_id}</div>
+          </div>
+          <div class="right">
+            <span style="font-family:var(--font-mono); font-size:13px;">R$</span>
+            <input type="number" step="0.01" min="0" value="${p.price}" style="width:80px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:13.5px;" class="produto-preco">
+            <span class="row-status ${p.active ? "on" : "off"}">${p.active ? "Ativo" : "Inativo"}</span>
+            <label class="toggle-switch"><input type="checkbox" ${p.active ? "checked" : ""}><span class="track"></span></label>
+          </div>`;
+        row.querySelector(".produto-preco").addEventListener("change", async (e) => {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+            method: "PATCH",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: p.id, price: e.target.value }),
+          });
+          carregarProdutos();
+        });
+        row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+            method: "PATCH",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: p.id, active: e.target.checked }),
+          });
+          carregarProdutos();
+        });
+        wrap.appendChild(row);
+      });
+    }
+
+    document.getElementById("add-produto").addEventListener("click", async () => {
+      const erroEl = document.getElementById("produto-erro");
+      erroEl.style.display = "none";
+      const id = document.getElementById("novo-produto-codigo").value.trim();
+      const name = document.getElementById("novo-produto-nome").value.trim();
+      const categoryId = document.getElementById("novo-produto-categoria").value;
+      const price = document.getElementById("novo-produto-preco").value;
+      if (!id || !name || !categoryId || price === "") {
+        erroEl.textContent = "Preencha código, nome, categoria e preço.";
+        erroEl.style.display = "block";
+        return;
+      }
+      try {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+          method: "POST",
+          headers: apiHeaders(),
+          body: JSON.stringify({ id, categoryId, name, price }),
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível cadastrar o produto.");
+        document.getElementById("novo-produto-codigo").value = "";
+        document.getElementById("novo-produto-nome").value = "";
+        document.getElementById("novo-produto-preco").value = "";
+        carregarProdutos();
+      } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.style.display = "block";
+      }
+    });
+
+    // ---------- Balcão de retirada ----------
+    const balcaoEmpty = document.getElementById("balcao-empty");
+    const balcaoResult = document.getElementById("balcao-result");
+    const balcaoConfirmBtn = document.getElementById("balcao-confirm");
+    const balcaoConfirmed = document.getElementById("balcao-confirmed");
+    const balcaoError = document.getElementById("balcao-error");
+    const balcaoProdutosWrap = document.getElementById("balcao-produtos");
+    let produtoSelecionado = null;
+    let codigoBalcaoAtual = null;
+
+    async function chamarBalcao(body) {
+      const res = await fetch(`${window.FreshCan.API_URL}/api/balcao`, {
+        method: "POST",
+        headers: apiHeaders(),
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível consultar agora.");
+      return data;
+    }
+
+    function renderProdutosBalcao(produtos) {
+      balcaoProdutosWrap.innerHTML = "";
+      produtoSelecionado = null;
+      balcaoConfirmBtn.disabled = true;
+      (produtos || []).forEach((produto) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn-outline btn-sm";
+        btn.textContent = `${produto.name} — R$${Number(produto.price).toFixed(2)}`;
+        btn.addEventListener("click", () => {
+          produtoSelecionado = produto.id;
+          balcaoConfirmBtn.disabled = false;
+          balcaoProdutosWrap.querySelectorAll("button").forEach((b) => b.classList.remove("btn-coral"));
+          btn.classList.add("btn-coral");
+        });
+        balcaoProdutosWrap.appendChild(btn);
+      });
+    }
+
+    document.getElementById("balcao-code-submit").addEventListener("click", async () => {
+      const code = document.getElementById("balcao-code-input").value.trim().toUpperCase();
+      if (!code) return;
+      balcaoError.style.display = "none";
+      balcaoConfirmed.style.display = "none";
+      try {
+        const data = await chamarBalcao({ codigo: code });
+        codigoBalcaoAtual = code;
+        document.getElementById("balcao-child-name").textContent = data.assinante.childName || "—";
+        document.getElementById("balcao-meta").textContent = `Responsável: ${data.assinante.guardianName || "—"} · ${data.assinante.school || "—"}`;
+        document.getElementById("balcao-saldo").textContent = `R$${Number(data.saldo.restante).toFixed(2)} de R$${Number(data.saldo.totalCiclo).toFixed(2)}`;
+        document.getElementById("balcao-avatar").innerHTML = data.assinante.photoUrl
+          ? `<img src="${data.assinante.photoUrl}" alt="Foto da criança">`
+          : "🧒";
+        renderProdutosBalcao(data.produtos);
+        balcaoEmpty.hidden = true;
+        balcaoResult.hidden = false;
+        balcaoConfirmBtn.style.display = "block";
+      } catch (err) {
+        balcaoEmpty.hidden = true;
+        balcaoResult.hidden = false;
+        balcaoConfirmBtn.style.display = "none";
+        balcaoProdutosWrap.innerHTML = "";
+        balcaoError.textContent = err.message;
+        balcaoError.style.display = "block";
+      }
+    });
+
+    balcaoConfirmBtn.addEventListener("click", async () => {
+      if (!produtoSelecionado) return;
+      balcaoError.style.display = "none";
+      try {
+        await chamarBalcao({ codigo: codigoBalcaoAtual, productId: produtoSelecionado });
+        balcaoConfirmBtn.style.display = "none";
+        balcaoConfirmed.style.display = "block";
+      } catch (err) {
+        balcaoError.textContent = err.message;
+        balcaoError.style.display = "block";
+      }
+    });
   });
 </script>
 </body>

@@ -112,13 +112,13 @@
       <div class="panel-card">
         <div class="panel-card-head">
           <div>
-            <h3>Saldo de retiradas</h3>
-            <p>Quantas retiradas já foram usadas neste ciclo.</p>
+            <h3>Saldo da assinatura</h3>
+            <p>Quanto já foi consumido neste ciclo, em reais.</p>
           </div>
         </div>
         <div class="balance-numbers">
-          <span class="big" id="p-saldo-usado">0</span>
-          <span class="total" id="p-saldo-total">de 0 retiradas usadas</span>
+          <span class="big" id="p-saldo-usado">R$0,00</span>
+          <span class="total" id="p-saldo-total">de R$0,00 consumidos</span>
         </div>
         <div class="meter-track"><div class="meter-fill" id="p-saldo-meter" style="width:0%;"></div></div>
       </div>
@@ -126,12 +126,17 @@
       <div class="panel-card">
         <div class="panel-card-head">
           <div>
-            <h3>Histórico de consumo</h3>
-            <p>O que já foi retirado com o código no balcão.</p>
+            <h3>Resumo de consumo</h3>
+            <p>O que já foi retirado com o código no balcão neste ciclo, agrupado por produto.</p>
           </div>
         </div>
-        <div class="history-list" id="p-historico">
-          <p style="font-size:13px; color:var(--ink-soft);">Nenhuma retirada registrada ainda.</p>
+        <div id="p-resumo-wrap" style="overflow-x:auto;">
+          <table class="report-table" id="p-resumo-table">
+            <thead>
+              <tr><th>Código</th><th>Categoria</th><th>Produto</th><th>Qtd.</th><th>Valor unit.</th><th>Valor total</th></tr>
+            </thead>
+            <tbody id="p-resumo-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -242,19 +247,18 @@
       renderProducts(a.allowedCategories || []);
 
       const saldo = data.saldo;
-      document.getElementById("p-saldo-usado").textContent = saldo.usadas;
-      document.getElementById("p-saldo-total").textContent = `de ${saldo.total} retiradas usadas`;
-      document.getElementById("p-saldo-meter").style.width = `${saldo.total ? Math.min(100, (saldo.usadas / saldo.total) * 100) : 0}%`;
+      document.getElementById("p-saldo-usado").textContent = `R$${saldo.gastoCiclo.toFixed(2)}`;
+      document.getElementById("p-saldo-total").textContent = `de R$${saldo.totalCiclo.toFixed(2)} consumidos`;
+      document.getElementById("p-saldo-meter").style.width = `${saldo.totalCiclo ? Math.min(100, (saldo.gastoCiclo / saldo.totalCiclo) * 100) : 0}%`;
 
-      const historicoWrap = document.getElementById("p-historico");
-      if (!data.historico.length) {
-        historicoWrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhuma retirada registrada ainda.</p>`;
+      const resumoBody = document.getElementById("p-resumo-body");
+      if (!data.resumoConsumo.length) {
+        resumoBody.innerHTML = `<tr><td colspan="6" style="color:var(--ink-soft); font-size:13px;">Nenhuma retirada registrada ainda.</td></tr>`;
       } else {
-        historicoWrap.innerHTML = data.historico
-          .map((h) => {
-            const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === h.category_id);
-            const data = new Date(h.redeemed_at).toLocaleDateString("pt-BR");
-            return `<div class="history-item"><div><div class="product">${cat?.label || h.category_id}</div><div class="meta">${data}</div></div><span class="history-status">Retirado</span></div>`;
+        resumoBody.innerHTML = data.resumoConsumo
+          .map((r) => {
+            const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === r.categoriaId);
+            return `<tr><td>${r.codigoProduto}</td><td>${cat?.label || r.categoriaId}</td><td>${r.produto}</td><td>${r.quantidade}</td><td>R$${r.valorUnitario.toFixed(2)}</td><td>R$${r.valorTotal.toFixed(2)}</td></tr>`;
           })
           .join("");
       }

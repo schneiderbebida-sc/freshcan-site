@@ -286,7 +286,7 @@
       <div class="form-success" id="subscription-success">
         <div class="ico">✅</div>
         <h3>Recebemos seu interesse!</h3>
-        <p>Abrimos o WhatsApp da FreshCan com seus dados preenchidos. Como ainda não temos envio automático de foto, anexe a foto da criança diretamente nessa conversa do WhatsApp. Nosso time confirma a assinatura por lá.</p>
+        <p>Abrimos o WhatsApp da FreshCan com seus dados preenchidos. Nosso time confirma a assinatura por lá.</p>
         <div id="codigo-gerado" style="display:none; margin-top:16px; padding:16px; background:var(--cream); border-radius:12px; text-align:center;">
           <p style="font-weight:600; margin-bottom:6px;">Seu código de retirada e de acesso ao painel:</p>
           <p id="codigo-gerado-valor" style="font-size:26px; font-weight:800; letter-spacing:4px;"></p>
@@ -510,18 +510,48 @@
       });
     });
 
-    /* --- Preview da foto da criança --- */
+    /* --- Upload + preview da foto da criança --- */
+    // Redimensiona no navegador (lado maior ~600px, JPEG) antes de enviar: fica
+    // bem menor (tipicamente 30-150KB), o que ajuda no 3G/4G e evita passar do
+    // limite de corpo de requisição do backend.
+    function resizeImageFile(file, maxSide = 600, quality = 0.75) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error("Não foi possível ler a foto."));
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onerror = () => reject(new Error("Não foi possível processar a foto."));
+          img.onload = () => {
+            const escala = Math.min(1, maxSide / Math.max(img.width, img.height));
+            const canvas = document.createElement("canvas");
+            canvas.width = Math.round(img.width * escala);
+            canvas.height = Math.round(img.height * escala);
+            canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/jpeg", quality));
+          };
+          img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    let fotoBase64 = null;
     const photoInput = document.getElementById("s-photo");
     const photoLabel = document.getElementById("s-photo-label");
     const photoPreview = document.getElementById("s-photo-preview");
     document.getElementById("s-photo-drop").addEventListener("click", () => photoInput.click());
-    photoInput.addEventListener("change", () => {
+    photoInput.addEventListener("change", async () => {
       const file = photoInput.files[0];
       if (!file) return;
-      photoLabel.textContent = file.name;
-      const reader = new FileReader();
-      reader.onload = (e) => { photoPreview.innerHTML = `<img src="${e.target.result}" alt="Foto da criança">`; };
-      reader.readAsDataURL(file);
+      photoLabel.textContent = "Processando foto...";
+      try {
+        fotoBase64 = await resizeImageFile(file);
+        photoLabel.textContent = file.name;
+        photoPreview.innerHTML = `<img src="${fotoBase64}" alt="Foto da criança">`;
+      } catch (err) {
+        fotoBase64 = null;
+        photoLabel.textContent = "Não foi possível processar essa foto — escolha outra.";
+      }
     });
 
     /* --- Categorias de produtos liberadas (admin controla o catálogo geral; pai escolhe aqui o que o filho pode pegar) --- */
@@ -545,7 +575,7 @@
     const paymentResult = document.getElementById("payment-result");
     const LABEL_GERANDO = { Boleto: "Gerando boleto...", Pix: "Gerando Pix...", "Cartão de crédito": "Abrindo checkout..." };
 
-    async function gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor, metodo, categoriasPermitidas }) {
+    async function gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor, metodo, categoriasPermitidas, fotoBase64 }) {
       const res = await fetch(`${window.FreshCan.API_URL}/api/criar-assinatura`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -559,6 +589,7 @@
           valor,
           metodo,
           categoriasPermitidas,
+          fotoBase64,
           descricao: `Assinatura escolar FreshCan — ${crianca} — ${escola}`,
         }),
       });
@@ -615,6 +646,11 @@
         return;
       }
       document.getElementById("plan-required-hint").style.display = "none";
+      if (!fotoBase64) {
+        photoLabel.textContent = "Escolha uma foto da criança antes de continuar.";
+        document.getElementById("s-photo-drop").scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
       const plano = planoInput.value;
       const valorPlano = Number(planoInput.dataset.valor || 0);
       const pagamento = document.querySelector('input[name="payment"]:checked')?.value || "[forma de pagamento não selecionada]";
@@ -625,7 +661,7 @@
       submitBtn.disabled = true;
       submitBtn.textContent = LABEL_GERANDO[pagamento] || "Enviando...";
       try {
-        cobranca = await gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor: valorPlano, metodo: pagamento, categoriasPermitidas: categoriaIds });
+        cobranca = await gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor: valorPlano, metodo: pagamento, categoriasPermitidas: categoriaIds, fotoBase64 });
       } catch (err) {
         errorMsg.textContent = `Não deu pra gerar a cobrança automaticamente agora (${err.message}). Vamos te enviar por WhatsApp assim que possível — segue o pedido pra nossa equipe.`;
         errorMsg.style.display = "block";
@@ -644,7 +680,6 @@
       msg += `Produtos liberados para a criança: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
       if (cobranca?.boletoUrl) msg += `Boleto já gerado: ${cobranca.boletoUrl}\n`;
       if (cobranca?.faturaUrl && cobranca.metodo !== "Boleto") msg += `Link de pagamento: ${cobranca.faturaUrl}\n`;
-      msg += "\nVou anexar a foto da criança nesta conversa.";
 
       window.open(window.FreshCan.buildWhatsAppLink(msg), "_blank");
       form.style.display = "none";

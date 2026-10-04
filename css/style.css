@@ -923,6 +923,16 @@ section { position: relative; }
   flex-shrink: 0;
 }
 
+.report-table { width: 100%; border-collapse: collapse; font-size: 13.5px; white-space: nowrap; }
+.report-table th {
+  text-align: left; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.03em;
+  color: var(--ink-soft); font-weight: 700; padding: 0 12px 10px; border-bottom: 1px solid var(--line);
+}
+.report-table td { padding: 12px 12px; border-bottom: 1px solid var(--line); }
+.report-table tr:last-child td { border-bottom: none; }
+.report-table th:first-child, .report-table td:first-child { padding-left: 0; }
+.report-table th:last-child, .report-table td:last-child { padding-right: 0; }
+
 @media (max-width: 560px) {
   .panel-card { padding: 24px 20px; }
   .panel-card-head { flex-direction: column; }
