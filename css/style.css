@@ -1020,6 +1020,12 @@ section { position: relative; }
 .toggle-switch input:checked + .track { background: #1a7a4c; }
 .toggle-switch input:checked + .track::before { transform: translateX(18px); }
 
+.btn-excluir {
+  background: none; border: 1px solid var(--line); border-radius: 8px;
+  width: 32px; height: 32px; font-size: 14px; cursor: pointer; line-height: 1;
+}
+.btn-excluir:hover { background: #fdecea; border-color: #b42318; }
+
 .data-row {
   display: flex; align-items: center; justify-content: space-between; gap: 14px;
   padding: 16px 20px; border: 1px solid var(--line); border-radius: var(--radius-sm);

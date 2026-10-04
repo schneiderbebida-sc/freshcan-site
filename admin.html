@@ -496,6 +496,7 @@
             <input type="number" step="0.01" min="0" value="${p.price}" style="width:80px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:13.5px;" class="produto-preco">
             <span class="row-status ${p.active ? "on" : "off"}">${p.active ? "Ativo" : "Inativo"}</span>
             <label class="toggle-switch"><input type="checkbox" ${p.active ? "checked" : ""}><span class="track"></span></label>
+            <button type="button" class="btn-excluir" title="Excluir produto">🗑️</button>
           </div>`;
         row.querySelector(".produto-preco").addEventListener("change", async (e) => {
           await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
@@ -511,6 +512,17 @@
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id, active: e.target.checked }),
           });
+          carregarProdutos();
+        });
+        row.querySelector(".btn-excluir").addEventListener("click", async () => {
+          if (!confirm(`Excluir o produto "${p.name}"? Essa ação não pode ser desfeita.`)) return;
+          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+            method: "DELETE",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: p.id }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir — confira se não há retiradas já registradas com esse produto."); return; }
           carregarProdutos();
         });
         wrap.appendChild(row);
@@ -570,6 +582,7 @@
           <div class="right">
             <span class="row-status ${s.active ? "on" : "off"}">${s.active ? "Ativo" : "Inativo"}</span>
             <label class="toggle-switch"><input type="checkbox" ${s.active ? "checked" : ""}><span class="track"></span></label>
+            <button type="button" class="btn-excluir" title="Excluir escola">🗑️</button>
           </div>`;
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
           await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, {
@@ -577,6 +590,17 @@
             headers: apiHeaders(),
             body: JSON.stringify({ id: s.id, active: e.target.checked }),
           });
+          carregarEscolas();
+        });
+        row.querySelector(".btn-excluir").addEventListener("click", async () => {
+          if (!confirm(`Excluir a escola "${s.name}"? Essa ação não pode ser desfeita.`)) return;
+          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, {
+            method: "DELETE",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: s.id }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir a escola."); return; }
           carregarEscolas();
         });
         wrap.appendChild(row);
@@ -632,6 +656,7 @@
             <div class="right">
               <span class="row-status ${c.active ? "on" : "off"}">${c.active ? "Ativo" : "Inativo"}</span>
               <label class="toggle-switch"><input type="checkbox" ${c.active ? "checked" : ""}><span class="track"></span></label>
+              <button type="button" class="btn-excluir" title="Excluir categoria">🗑️</button>
             </div>`;
           row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
             await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
@@ -639,6 +664,18 @@
               headers: apiHeaders(),
               body: JSON.stringify({ id: c.id, active: e.target.checked }),
             });
+            carregarMenuCategorias();
+          });
+          row.querySelector(".btn-excluir").addEventListener("click", async () => {
+            if (!confirm(`Excluir a categoria "${c.label}"? Produtos cadastrados nela não serão apagados, mas ficam sem categoria válida. Essa ação não pode ser desfeita.`)) return;
+            const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
+              method: "DELETE",
+              headers: apiHeaders(),
+              body: JSON.stringify({ id: c.id }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir a categoria."); return; }
+            window.PRODUCT_CATEGORIES = (window.PRODUCT_CATEGORIES || []).filter((cat) => cat.id !== c.id);
             carregarMenuCategorias();
           });
           wrap.appendChild(row);
@@ -731,6 +768,7 @@
             <input type="number" step="0.01" min="0" value="${p.price}" style="width:80px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; font-size:13.5px;" class="menu-produto-preco">
             <span class="row-status ${p.active ? "on" : "off"}">${p.active ? "Ativo" : "Inativo"}</span>
             <label class="toggle-switch"><input type="checkbox" ${p.active ? "checked" : ""}><span class="track"></span></label>
+            <button type="button" class="btn-excluir" title="Excluir produto">🗑️</button>
           </div>`;
         row.querySelector(".menu-produto-preco").addEventListener("change", async (e) => {
           await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=products`, {
@@ -746,6 +784,17 @@
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id, active: e.target.checked }),
           });
+          carregarMenuProdutos();
+        });
+        row.querySelector(".btn-excluir").addEventListener("click", async () => {
+          if (!confirm(`Excluir o produto "${p.name}"? A foto também será apagada. Essa ação não pode ser desfeita.`)) return;
+          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=products`, {
+            method: "DELETE",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: p.id }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir o produto."); return; }
           carregarMenuProdutos();
         });
         wrap.appendChild(row);
