@@ -620,9 +620,11 @@ section { position: relative; }
   .menu-filters {
     flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
     padding-bottom: 2px;
+    touch-action: pan-x;
   }
   .menu-filters::-webkit-scrollbar { display: none; }
   .filter-chip { flex: 0 0 auto; white-space: nowrap; }
