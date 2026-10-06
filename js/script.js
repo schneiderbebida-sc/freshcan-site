@@ -5,7 +5,14 @@
    ========================================================================== */
 
 const WHATSAPP_NUMBER = "5547933860900"; // (47) 93386-0900
-const FRESHCAN_API_URL = "https://freshcan-api.vercel.app"; // TODO: atualizar após o primeiro deploy do freshcan-api
+
+// Produção (freshcan.com.br, GitHub Pages) usa a API de produção; qualquer outro
+// host (localhost, preview do Vercel) usa a API de homologação automaticamente —
+// evita manter dois arquivos divergentes entre as branches main/staging.
+const FRESHCAN_API_URL =
+  window.location.hostname === "freshcan.com.br"
+    ? "https://freshcan-api.vercel.app"
+    : "https://freshcan-api-git-staging-latamtransfer.vercel.app";
 
 /* --- Navegação: some/aparece fundo sólido ao rolar --- */
 function initNav() {
