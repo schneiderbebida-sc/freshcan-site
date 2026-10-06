@@ -12,7 +12,7 @@ const WHATSAPP_NUMBER = "5547933860900"; // (47) 93386-0900
 const FRESHCAN_API_URL =
   window.location.hostname === "freshcan.com.br"
     ? "https://freshcan-api.vercel.app"
-    : "https://freshcan-api-git-staging-latamtransfer.vercel.app";
+    : "https://freshcan-api-staging.vercel.app";
 
 /* --- Navegação: some/aparece fundo sólido ao rolar --- */
 function initNav() {
