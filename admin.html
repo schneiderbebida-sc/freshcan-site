@@ -271,8 +271,15 @@
 <script src="js/script.js"></script>
 <script src="js/menu-dynamic.js"></script>
 <script>
-  const SUPABASE_URL = "https://hcmiufnskjquqdjnpfkh.supabase.co";
-  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_EpLgBenGFpAwYtNLx6O5Mg_Ihumd8SU";
+  // Mesma lógica de detecção de ambiente do js/script.js (FRESHCAN_API_URL):
+  // produção usa o Supabase de produção, qualquer outro host usa o de homologação.
+  const IS_PROD_HOST = window.location.hostname === "freshcan.com.br";
+  const SUPABASE_URL = IS_PROD_HOST
+    ? "https://hcmiufnskjquqdjnpfkh.supabase.co"
+    : "https://ghmcqwwkidyeprbyfnvo.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY = IS_PROD_HOST
+    ? "sb_publishable_EpLgBenGFpAwYtNLx6O5Mg_Ihumd8SU"
+    : "sb_publishable_nlky1eeusA7MUmfKI-CbpA_m23gCn6b";
 
   document.addEventListener("DOMContentLoaded", () => {
     const gate = document.getElementById("admin-gate");
