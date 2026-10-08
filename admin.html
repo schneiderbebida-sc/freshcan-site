@@ -78,7 +78,7 @@
           <dl class="panel-fields" style="margin-bottom:20px;">
             <div class="panel-field"><dt>Saldo restante</dt><dd id="balcao-saldo">—</dd></div>
           </dl>
-          <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Qual produto a criança está retirando?</p>
+          <p id="balcao-produtos-titulo" style="font-size:13px; font-weight:600; margin-bottom:10px;">Qual o grupo do produto?</p>
           <div id="balcao-produtos" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
           <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Confira se a criança na sua frente é a mesma da foto antes de confirmar.</p>
           <button id="balcao-confirm" class="btn btn-coral btn-block" disabled>Confirmar retirada</button>
@@ -369,6 +369,13 @@
     // ---------- Clientes ----------
     const STATUS_LABEL = { active: ["on", "Ativo"], pending: ["warn", "Aguardando confirmação"], inactive: ["off", "Inativo"] };
 
+    function formatarTelefone(digits) {
+      const d = String(digits || "").replace(/\D/g, "");
+      if (d.length === 11) return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+      if (d.length === 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+      return d || "—";
+    }
+
     async function carregarAssinantes() {
       const res = await fetch(`${window.FreshCan.API_URL}/api/admin/subscribers`, { headers: apiHeaders() });
       const data = await res.json();
@@ -388,7 +395,7 @@
         row.innerHTML = `
           <div class="main">
             <div class="name">${s.guardian_name} — ${s.child_name || "—"}</div>
-            <div class="meta">${s.school || "—"} · Plano R$${s.plan_value}/mês · ${s.payment_method} · Código ${s.redemption_code}</div>
+            <div class="meta">📱 ${formatarTelefone(s.whatsapp)} · ${s.school || "—"} · Plano R$${s.plan_value}/mês · ${s.payment_method} · Código ${s.redemption_code}</div>
           </div>
           <div class="right">
             <span class="row-status ${statusClass}">${statusLabel}</span>
@@ -897,23 +904,80 @@
       return data;
     }
 
+    const balcaoProdutosTitulo = document.getElementById("balcao-produtos-titulo");
+
+    // Agrupa por categoria primeiro (grupo) e só mostra os itens do grupo
+    // escolhido — evita listar todos os produtos de uma vez (tela poluída
+    // quando uma categoria como panquecas tem 8+ variações).
     function renderProdutosBalcao(produtos) {
-      balcaoProdutosWrap.innerHTML = "";
       produtoSelecionado = null;
       balcaoConfirmBtn.disabled = true;
+
+      const grupos = {};
       (produtos || []).forEach((produto) => {
-        const btn = document.createElement("button");
-        btn.type = "button";
-        btn.className = "btn btn-outline btn-sm";
-        btn.textContent = `${produto.name} — R$${Number(produto.price).toFixed(2)}`;
-        btn.addEventListener("click", () => {
-          produtoSelecionado = produto.id;
-          balcaoConfirmBtn.disabled = false;
-          balcaoProdutosWrap.querySelectorAll("button").forEach((b) => b.classList.remove("btn-coral"));
-          btn.classList.add("btn-coral");
-        });
-        balcaoProdutosWrap.appendChild(btn);
+        const catId = produto.category_id || "outros";
+        (grupos[catId] = grupos[catId] || []).push(produto);
       });
+      const idsGrupos = Object.keys(grupos);
+
+      function labelGrupo(catId) {
+        const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === catId);
+        return cat?.label || catId;
+      }
+
+      function mostrarGrupos() {
+        produtoSelecionado = null;
+        balcaoConfirmBtn.disabled = true;
+        balcaoProdutosTitulo.textContent = "Qual o grupo do produto?";
+        balcaoProdutosWrap.innerHTML = "";
+        idsGrupos.forEach((catId) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn btn-outline btn-sm";
+          btn.textContent = `${labelGrupo(catId)} (${grupos[catId].length})`;
+          btn.addEventListener("click", () => mostrarItens(catId));
+          balcaoProdutosWrap.appendChild(btn);
+        });
+      }
+
+      function mostrarItens(catId) {
+        produtoSelecionado = null;
+        balcaoConfirmBtn.disabled = true;
+        balcaoProdutosTitulo.textContent = `${labelGrupo(catId)} — qual item?`;
+        balcaoProdutosWrap.innerHTML = "";
+
+        const voltar = document.createElement("button");
+        voltar.type = "button";
+        voltar.className = "btn btn-outline btn-sm";
+        voltar.style.width = "100%";
+        voltar.textContent = "← Trocar grupo";
+        voltar.addEventListener("click", mostrarGrupos);
+        balcaoProdutosWrap.appendChild(voltar);
+
+        grupos[catId].forEach((produto) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn btn-outline btn-sm";
+          btn.textContent = `${produto.name} — R$${Number(produto.price).toFixed(2)}`;
+          btn.addEventListener("click", () => {
+            produtoSelecionado = produto.id;
+            balcaoConfirmBtn.disabled = false;
+            balcaoProdutosWrap.querySelectorAll("button").forEach((b) => { if (b !== voltar) b.classList.remove("btn-coral"); });
+            btn.classList.add("btn-coral");
+          });
+          balcaoProdutosWrap.appendChild(btn);
+        });
+      }
+
+      if (idsGrupos.length === 0) {
+        balcaoProdutosTitulo.textContent = "Qual produto a criança está retirando?";
+        balcaoProdutosWrap.innerHTML = "";
+      } else if (idsGrupos.length === 1) {
+        // só um grupo disponível pra esse cliente — pula direto pros itens
+        mostrarItens(idsGrupos[0]);
+      } else {
+        mostrarGrupos();
+      }
     }
 
     document.getElementById("balcao-code-submit").addEventListener("click", async () => {
