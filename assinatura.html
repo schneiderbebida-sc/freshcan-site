@@ -508,19 +508,25 @@
       }
     })();
 
-    /* --- Categorias de produtos liberadas (admin controla o catálogo geral; pai escolhe aqui o que o filho pode pegar) --- */
+    /* --- Categorias de produtos liberadas (admin controla o catálogo geral; pai escolhe aqui o que o filho pode pegar) ---
+       Espera o menu-dynamic.js terminar de buscar as categorias cadastradas no admin
+       antes de montar os checkboxes — sem isso, a lista ficava só com as categorias
+       estáticas antigas de products.js, descoladas do catálogo real usado no balcão. */
     const EXCLUDED_CATEGORIES = ["drinks", "vinho"]; // bebidas alcoólicas nunca entram na assinatura escolar
     const productsWrap = document.getElementById("s-products");
-    if (window.PRODUCT_CATEGORIES && productsWrap) {
-      window.PRODUCT_CATEGORIES
-        .filter((cat) => !EXCLUDED_CATEGORIES.includes(cat.id))
-        .forEach((cat) => {
-          const label = document.createElement("label");
-          label.className = "product-check";
-          label.innerHTML = `<input type="checkbox" name="allowed-category" value="${cat.id}"><span>${cat.label}</span>`;
-          productsWrap.appendChild(label);
-        });
-    }
+    (async () => {
+      if (window.FreshCanMenuReady) await window.FreshCanMenuReady;
+      if (window.PRODUCT_CATEGORIES && productsWrap) {
+        window.PRODUCT_CATEGORIES
+          .filter((cat) => !EXCLUDED_CATEGORIES.includes(cat.id))
+          .forEach((cat) => {
+            const label = document.createElement("label");
+            label.className = "product-check";
+            label.innerHTML = `<input type="checkbox" name="allowed-category" value="${cat.id}"><span>${cat.label}</span>`;
+            productsWrap.appendChild(label);
+          });
+      }
+    })();
 
     const form = document.getElementById("subscription-form");
     const success = document.getElementById("subscription-success");

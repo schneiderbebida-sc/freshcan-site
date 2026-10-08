@@ -204,7 +204,7 @@
         <div class="form-shell" style="padding:24px; margin-top:20px;">
           <div class="form-grid">
             <div class="form-field">
-              <label for="nova-menu-categoria-codigo">Código</label>
+              <label for="nova-menu-categoria-codigo">Código (gerado automaticamente a partir do nome)</label>
               <input type="text" id="nova-menu-categoria-codigo" placeholder="Ex: bolos">
             </div>
             <div class="form-field">
@@ -698,13 +698,43 @@
       }
     }
 
+    // Normaliza um texto pro mesmo "formato canônico" (sem acento, minúsculo, só letras/números/hífen)
+    // pra comparar categorias apesar de maiúscula/minúscula ou acentuação diferentes — foi assim que
+    // "Água de Coco" e "AGUA DE COCO" acabaram sendo cadastradas duas vezes, com produtos divergindo
+    // entre as duas e sumindo do balcão pra quem tinha só uma delas liberada.
+    function slugify(texto) {
+      return (texto || "")
+        .normalize("NFD").replace(/[̀-ͯ]/g, "")
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    const categoriaCodigoInput = document.getElementById("nova-menu-categoria-codigo");
+    const categoriaNomeInput = document.getElementById("nova-menu-categoria-nome");
+    let codigoEditadoManualmente = false;
+    categoriaCodigoInput.addEventListener("input", () => { codigoEditadoManualmente = true; });
+    categoriaNomeInput.addEventListener("input", () => {
+      if (!codigoEditadoManualmente) categoriaCodigoInput.value = slugify(categoriaNomeInput.value);
+    });
+
     document.getElementById("add-menu-categoria").addEventListener("click", async () => {
       const erroEl = document.getElementById("menu-categoria-erro");
       erroEl.style.display = "none";
-      const id = document.getElementById("nova-menu-categoria-codigo").value.trim();
-      const label = document.getElementById("nova-menu-categoria-nome").value.trim();
+      const id = categoriaCodigoInput.value.trim();
+      const label = categoriaNomeInput.value.trim();
       if (!id || !label) {
         erroEl.textContent = "Preencha código e nome da categoria.";
+        erroEl.style.display = "block";
+        return;
+      }
+      const slugNova = slugify(id);
+      const existente = (window.PRODUCT_CATEGORIES || []).find(
+        (cat) => slugify(cat.id) === slugNova || slugify(cat.label) === slugify(label)
+      );
+      if (existente) {
+        erroEl.textContent = `Já existe uma categoria parecida: "${existente.label}" (código "${existente.id}"). Use um produto dentro dela em vez de criar outra, ou escolha um nome bem diferente.`;
         erroEl.style.display = "block";
         return;
       }
@@ -716,8 +746,9 @@
         });
         const data = await res.json();
         if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível cadastrar a categoria.");
-        document.getElementById("nova-menu-categoria-codigo").value = "";
-        document.getElementById("nova-menu-categoria-nome").value = "";
+        categoriaCodigoInput.value = "";
+        categoriaNomeInput.value = "";
+        codigoEditadoManualmente = false;
         window.PRODUCT_CATEGORIES.push({ id, label, icon: "🫙" });
         carregarMenuCategorias();
         carregarCategorias();
