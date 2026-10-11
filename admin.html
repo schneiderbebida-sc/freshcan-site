@@ -17,9 +17,25 @@
     <div class="nav-actions">
       <span class="demo-tag" id="role-tag" style="background:rgba(255,255,255,0.14); color:#fff; display:none;"></span>
       <span class="demo-tag" style="background:rgba(255,255,255,0.14); color:#fff;">Área interna · admin</span>
+      <button class="admin-menu-toggle" id="admin-menu-toggle" aria-label="Abrir menu de seções" style="display:none;">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </div>
 </header>
+
+<div class="admin-section-nav-overlay" id="admin-section-nav-overlay" hidden></div>
+<nav class="admin-section-nav" id="admin-section-nav" aria-label="Seções do painel">
+  <button type="button" class="admin-section-nav-close" id="admin-section-nav-close" aria-label="Fechar menu">✕</button>
+  <button type="button" class="admin-section-link" data-target="balcao" data-roles="admin,atendente">Balcão de retirada</button>
+  <button type="button" class="admin-section-link" data-target="clientes" data-roles="admin">Clientes</button>
+  <button type="button" class="admin-section-link" data-target="saldo" data-roles="admin">Regras de saldo</button>
+  <button type="button" class="admin-section-link" data-target="categorias" data-roles="admin">Categorias do catálogo</button>
+  <button type="button" class="admin-section-link" data-target="escolas" data-roles="admin">Escolas / pontos de retirada</button>
+  <button type="button" class="admin-section-link" data-target="produtos" data-roles="admin">Produtos e preços</button>
+  <button type="button" class="admin-section-link" data-target="cardapio-categorias" data-roles="admin">Categorias do cardápio</button>
+  <button type="button" class="admin-section-link" data-target="cardapio-produtos" data-roles="admin">Produtos do cardápio</button>
+</nav>
 
 <section class="page-hero">
   <div class="container">
@@ -53,7 +69,7 @@
     <div id="admin-app" hidden>
 
       <!-- Balcão de retirada — visível para admin e atendente -->
-      <div class="internal-section reveal" data-roles="admin,atendente">
+      <div class="internal-section reveal" data-roles="admin,atendente" data-section="balcao">
         <div class="internal-section-head">
           <div>
             <h3>Balcão de retirada</h3>
@@ -88,7 +104,7 @@
       </div>
 
       <!-- Clientes — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="clientes">
         <div class="internal-section-head">
           <div>
             <h3>Clientes</h3>
@@ -99,7 +115,7 @@
       </div>
 
       <!-- Regras de saldo — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="saldo">
         <div class="internal-section-head">
           <div>
             <h3>Regras de saldo</h3>
@@ -120,7 +136,7 @@
       </div>
 
       <!-- Categorias do catálogo — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="categorias">
         <div class="internal-section-head">
           <div>
             <h3>Categorias do catálogo</h3>
@@ -135,7 +151,7 @@
       </div>
 
       <!-- Escolas / pontos de retirada — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="escolas">
         <div class="internal-section-head">
           <div>
             <h3>Escolas / pontos de retirada</h3>
@@ -160,7 +176,7 @@
       </div>
 
       <!-- Produtos e preços — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="produtos">
         <div class="internal-section-head">
           <div>
             <h3>Produtos e preços</h3>
@@ -193,7 +209,7 @@
       </div>
 
       <!-- Categorias do cardápio — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="cardapio-categorias">
         <div class="internal-section-head">
           <div>
             <h3>Categorias do cardápio</h3>
@@ -218,7 +234,7 @@
       </div>
 
       <!-- Produtos do cardápio — admin -->
-      <div class="internal-section reveal" data-roles="admin">
+      <div class="internal-section reveal" data-roles="admin" data-section="cardapio-produtos">
         <div class="internal-section-head">
           <div>
             <h3>Produtos do cardápio</h3>
@@ -292,15 +308,56 @@
       return { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
     }
 
+    /* --- Menu hambúrguer: cada bloco de gestão (Clientes, Regras de saldo, Categorias...)
+       vira uma "seção" exibida sozinha de cada vez, escolhida pelo menu lateral — antes
+       tudo ficava empilhado na mesma tela e ficava poluído pra quem administra. --- */
+    let activeSection = "balcao";
+    const adminMenuToggle = document.getElementById("admin-menu-toggle");
+    const sectionNav = document.getElementById("admin-section-nav");
+    const sectionNavOverlay = document.getElementById("admin-section-nav-overlay");
+
+    function abrirSectionNav() {
+      sectionNav.classList.add("is-open");
+      sectionNavOverlay.hidden = false;
+    }
+    function fecharSectionNav() {
+      sectionNav.classList.remove("is-open");
+      sectionNavOverlay.hidden = true;
+    }
+    adminMenuToggle.addEventListener("click", abrirSectionNav);
+    document.getElementById("admin-section-nav-close").addEventListener("click", fecharSectionNav);
+    sectionNavOverlay.addEventListener("click", fecharSectionNav);
+
+    function atualizarVisibilidade() {
+      document.querySelectorAll(".internal-section[data-section]").forEach((el) => {
+        const papeis = el.dataset.roles.split(",");
+        el.hidden = !papeis.includes(currentRole) || el.dataset.section !== activeSection;
+      });
+      document.querySelectorAll(".admin-section-link").forEach((btn) => {
+        const papeis = btn.dataset.roles.split(",");
+        btn.hidden = !papeis.includes(currentRole);
+        btn.classList.toggle("is-active", btn.dataset.target === activeSection);
+      });
+    }
+
+    function mostrarSecao(id) {
+      activeSection = id;
+      atualizarVisibilidade();
+      fecharSectionNav();
+      document.getElementById("admin-app").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    document.querySelectorAll(".admin-section-link").forEach((btn) => {
+      btn.addEventListener("click", () => mostrarSecao(btn.dataset.target));
+    });
+
     function aplicarRole(role) {
       currentRole = role;
-      document.querySelectorAll("[data-roles]").forEach((el) => {
-        const papeis = el.dataset.roles.split(",");
-        el.hidden = !papeis.includes(role);
-      });
+      activeSection = "balcao";
+      atualizarVisibilidade();
       const roleTag = document.getElementById("role-tag");
       roleTag.textContent = role === "admin" ? "Administrador" : "Atendente de loja";
       roleTag.style.display = "inline-block";
+      adminMenuToggle.style.display = role === "admin" ? "flex" : "none";
     }
 
     async function carregarTudo() {
