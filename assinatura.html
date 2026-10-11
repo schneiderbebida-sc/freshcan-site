@@ -176,7 +176,16 @@
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$199<span>/mês</span></div>
         </label>
+      <label class="price-tier" id="plan-tier-custom">
+        <input type="radio" name="plan" value="Outro valor" data-valor="0" id="plan-custom-radio" form="subscription-form">
+        <div class="tier-name">Outro valor</div>
+        <div class="tier-price-custom">
+          <span>R$</span><input type="number" id="plan-custom-valor" min="5" step="1" inputmode="numeric" placeholder="0" aria-label="Digite o valor mensal da sua assinatura"><span>/mês</span>
+        </div>
+        </label>
     </div>
+    <p id="plan-custom-hint" style="display:none; text-align:center; color:var(--ink-soft); font-size:12.5px; margin-top:12px;">Assim como os planos acima, esse valor vira uma cobrança mensal automática via Asaas — ela se repete sozinha todo mês, então você não precisa lembrar de pagar.</p>
+    <p id="plan-custom-error" style="display:none; text-align:center; color:#b42318; font-size:13.5px; margin-top:12px;">Digite um valor de pelo menos R$5 para a assinatura.</p>
     <p id="plan-required-hint" style="display:none; text-align:center; color:#b42318; font-size:13.5px; margin-top:12px;">Escolha um plano aí em cima antes de continuar.</p>
 
     <div class="plan-card reveal" style="margin-top:30px;">
@@ -428,19 +437,46 @@
     /* --- Seleção de plano (destaca o cartão escolhido + resume no formulário) --- */
     const planInputs = document.querySelectorAll('input[name="plan"]');
     const planSummary = document.getElementById("s-plan-summary");
+    const planCustomRadio = document.getElementById("plan-custom-radio");
+    const planCustomValor = document.getElementById("plan-custom-valor");
+    const planCustomHint = document.getElementById("plan-custom-hint");
+    const planCustomError = document.getElementById("plan-custom-error");
+
+    function atualizarResumoPlano(input) {
+      document.querySelectorAll(".price-tier").forEach((tier) => tier.classList.remove("is-selected"));
+      input.closest(".price-tier").classList.add("is-selected");
+      planSummary.textContent = `Plano escolhido: ${input.value}.`;
+      planSummary.style.color = "var(--ink)";
+      document.getElementById("plan-required-hint").style.display = "none";
+      planCustomHint.style.display = input === planCustomRadio ? "block" : "none";
+      if (input !== planCustomRadio) planCustomError.style.display = "none";
+    }
+
     planInputs.forEach((input) => {
-      input.addEventListener("change", () => {
-        document.querySelectorAll(".price-tier").forEach((tier) => tier.classList.remove("is-selected"));
-        input.closest(".price-tier").classList.add("is-selected");
-        planSummary.textContent = `Plano escolhido: ${input.value}.`;
-        planSummary.style.color = "var(--ink)";
-        document.getElementById("plan-required-hint").style.display = "none";
-      });
+      input.addEventListener("change", () => atualizarResumoPlano(input));
     });
     document.getElementById("s-plan-scroll")?.addEventListener("click", (e) => {
       e.preventDefault();
       document.querySelector(".pricing-grid").scrollIntoView({ behavior: "smooth", block: "center" });
     });
+
+    /* --- Campo "Outro valor": digitar já seleciona o cartão e atualiza o valor usado no envio --- */
+    function aplicarValorCustom() {
+      const valor = Math.max(0, Math.round(Number(planCustomValor.value) || 0));
+      planCustomRadio.dataset.valor = valor;
+      planCustomRadio.value = valor > 0 ? `Outro valor — R$${valor} / mês` : "Outro valor";
+      if (planCustomRadio.checked) {
+        planSummary.textContent = valor > 0 ? `Plano escolhido: ${planCustomRadio.value}.` : "Digite o valor da sua assinatura.";
+        if (valor >= 5) planCustomError.style.display = "none";
+      }
+    }
+    planCustomValor.addEventListener("focus", () => {
+      if (!planCustomRadio.checked) {
+        planCustomRadio.checked = true;
+        planCustomRadio.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+    });
+    planCustomValor.addEventListener("input", aplicarValorCustom);
 
     /* --- Seleção de forma de pagamento --- */
     document.querySelectorAll('input[name="payment"]').forEach((input) => {
@@ -606,6 +642,11 @@
         return;
       }
       document.getElementById("plan-required-hint").style.display = "none";
+      if (planoInput === planCustomRadio && Number(planoInput.dataset.valor || 0) < 5) {
+        planCustomError.style.display = "block";
+        planCustomValor.focus();
+        return;
+      }
       if (!fotoBase64) {
         photoLabel.textContent = "Escolha uma foto da criança antes de continuar.";
         document.getElementById("s-photo-drop").scrollIntoView({ behavior: "smooth", block: "center" });

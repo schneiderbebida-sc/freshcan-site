@@ -959,20 +959,31 @@ section { position: relative; }
    Planos, pagamento, foto da criança, permissão de produtos
    ========================================================================== */
 
-.pricing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.pricing-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
 .price-tier {
   border: 1.5px solid var(--line); border-radius: var(--radius-sm); background: #fff;
   padding: 24px 18px; text-align: center; cursor: pointer;
   transition: border-color 0.2s ease, transform 0.2s ease;
 }
 .price-tier:hover { transform: translateY(-3px); }
-.price-tier input { position: absolute; opacity: 0; pointer-events: none; }
+.price-tier > input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
 .price-tier .tier-name { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 10px; }
 .price-tier .tier-price { font-family: var(--font-mono); font-weight: 700; font-size: 26px; color: var(--ink); }
 .price-tier .tier-price span { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
 .price-tier .tier-note { font-size: 11.5px; color: var(--coral-deep); font-family: var(--font-mono); margin-top: 10px; }
 .price-tier.is-selected { border-color: var(--coral); box-shadow: 0 0 0 3px rgba(255,90,60,0.12); }
 .price-tier.is-selected .tier-price { color: var(--coral-deep); }
+.price-tier .tier-price-custom { display: flex; align-items: baseline; justify-content: center; gap: 4px; font-family: var(--font-mono); font-weight: 700; font-size: 20px; color: var(--ink); }
+.price-tier .tier-price-custom span { font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.price-tier .tier-price-custom input {
+  width: 72px; border: none; border-bottom: 1.5px solid var(--line); background: transparent;
+  font-family: var(--font-mono); font-weight: 700; font-size: 20px; color: var(--ink);
+  text-align: center; padding: 2px 0; cursor: text;
+}
+.price-tier .tier-price-custom input:focus { outline: none; border-color: var(--coral); }
+.price-tier.is-selected .tier-price-custom,
+.price-tier.is-selected .tier-price-custom input { color: var(--coral-deep); }
+.price-tier.is-selected .tier-price-custom input { border-color: var(--coral); }
 @media (max-width: 900px) { .pricing-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 480px) { .pricing-grid { grid-template-columns: 1fr; } }
 
