@@ -31,7 +31,7 @@
   <button type="button" class="admin-section-link" data-target="clientes" data-roles="admin">Clientes</button>
   <button type="button" class="admin-section-link" data-target="saldo" data-roles="admin">Regras de saldo</button>
   <button type="button" class="admin-section-link" data-target="categorias" data-roles="admin">Categorias do catálogo</button>
-  <button type="button" class="admin-section-link" data-target="escolas" data-roles="admin">Escolas / pontos de retirada</button>
+  <button type="button" class="admin-section-link" data-target="escolas" data-roles="admin">Parceiros</button>
   <button type="button" class="admin-section-link" data-target="produtos" data-roles="admin">Produtos e preços</button>
   <button type="button" class="admin-section-link" data-target="cardapio-categorias" data-roles="admin">Categorias do cardápio</button>
   <button type="button" class="admin-section-link" data-target="cardapio-produtos" data-roles="admin">Produtos do cardápio</button>
@@ -150,12 +150,12 @@
         <div id="admin-categorias"></div>
       </div>
 
-      <!-- Escolas / pontos de retirada — admin -->
+      <!-- Parceiros (escolas / pontos de retirada) — admin -->
       <div class="internal-section reveal" data-roles="admin" data-section="escolas">
         <div class="internal-section-head">
           <div>
-            <h3>Escolas / pontos de retirada</h3>
-            <p>Cadastre aqui as escolas participantes. Só as ativas aparecem no formulário de assinatura.</p>
+            <h3>Parceiros</h3>
+            <p>Cadastre aqui os parceiros participantes. Só os ativos aparecem no formulário de assinatura.</p>
           </div>
         </div>
         <div id="admin-escolas"></div>
@@ -163,14 +163,14 @@
           <div class="form-grid">
             <div class="form-field">
               <label for="nova-escola-codigo">Código</label>
-              <input type="text" id="nova-escola-codigo" placeholder="Ex: colegio-xyz">
+              <input type="text" id="nova-escola-codigo" placeholder="Ex: empresa-xyz">
             </div>
             <div class="form-field">
               <label for="nova-escola-nome">Nome</label>
-              <input type="text" id="nova-escola-nome" placeholder="Ex: Colégio XYZ">
+              <input type="text" id="nova-escola-nome" placeholder="Ex: Empresa XYZ">
             </div>
           </div>
-          <button class="btn btn-outline" style="margin-top:6px;" id="add-escola">Adicionar escola</button>
+          <button class="btn btn-outline" style="margin-top:6px;" id="add-escola">Adicionar parceiro</button>
           <p id="escola-erro" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
         </div>
       </div>
@@ -630,7 +630,7 @@
       }
     });
 
-    // ---------- Escolas / pontos de retirada ----------
+    // ---------- Parceiros (escolas / pontos de retirada) ----------
     async function carregarEscolas() {
       const res = await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, { headers: apiHeaders() });
       const data = await res.json();
@@ -640,7 +640,7 @@
       const wrap = document.getElementById("admin-escolas");
       wrap.innerHTML = "";
       if (!data.schools.length) {
-        wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhuma escola cadastrada ainda.</p>`;
+        wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhum parceiro cadastrado ainda.</p>`;
         return;
       }
       data.schools.forEach((s) => {
@@ -653,7 +653,7 @@
           <div class="right">
             <span class="row-status ${s.active ? "on" : "off"}">${s.active ? "Ativo" : "Inativo"}</span>
             <label class="toggle-switch"><input type="checkbox" ${s.active ? "checked" : ""}><span class="track"></span></label>
-            <button type="button" class="btn-excluir" title="Excluir escola">🗑️</button>
+            <button type="button" class="btn-excluir" title="Excluir parceiro">🗑️</button>
           </div>`;
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
           await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, {
@@ -664,14 +664,14 @@
           carregarEscolas();
         });
         row.querySelector(".btn-excluir").addEventListener("click", async () => {
-          if (!confirm(`Excluir a escola "${s.name}"? Essa ação não pode ser desfeita.`)) return;
+          if (!confirm(`Excluir o parceiro "${s.name}"? Essa ação não pode ser desfeita.`)) return;
           const res = await fetch(`${window.FreshCan.API_URL}/api/admin/schools`, {
             method: "DELETE",
             headers: apiHeaders(),
             body: JSON.stringify({ id: s.id }),
           });
           const data = await res.json();
-          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir a escola."); return; }
+          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir o parceiro."); return; }
           carregarEscolas();
         });
         wrap.appendChild(row);
@@ -684,7 +684,7 @@
       const id = document.getElementById("nova-escola-codigo").value.trim();
       const name = document.getElementById("nova-escola-nome").value.trim();
       if (!id || !name) {
-        erroEl.textContent = "Preencha código e nome da escola.";
+        erroEl.textContent = "Preencha código e nome do parceiro.";
         erroEl.style.display = "block";
         return;
       }
@@ -695,7 +695,7 @@
           body: JSON.stringify({ id, name }),
         });
         const data = await res.json();
-        if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível cadastrar a escola.");
+        if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível cadastrar o parceiro.");
         document.getElementById("nova-escola-codigo").value = "";
         document.getElementById("nova-escola-nome").value = "";
         carregarEscolas();
