@@ -1009,7 +1009,11 @@
     });
 
     balcaoConfirmBtn.addEventListener("click", async () => {
-      if (!produtoSelecionado) return;
+      if (!produtoSelecionado) {
+        balcaoError.textContent = "Selecione um produto antes de confirmar a retirada.";
+        balcaoError.style.display = "block";
+        return;
+      }
       balcaoError.style.display = "none";
       try {
         await chamarBalcao({ codigo: codigoBalcaoAtual, productId: produtoSelecionado });

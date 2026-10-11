@@ -107,6 +107,8 @@ p { margin: 0; line-height: 1.6; }
 .btn-ghost:hover { background: rgba(255,255,255,0.15); border-color: #fff; }
 .btn-outline { background: transparent; color: var(--ink); border-color: var(--ink); }
 .btn-outline:hover { background: var(--ink); color: var(--white); }
+.btn-outline.btn-coral { background: var(--coral); color: var(--white); border-color: var(--coral); }
+.btn-outline.btn-coral:hover { background: var(--coral-deep); }
 .btn-sm { padding: 10px 20px; font-size: 13.5px; }
 .btn-block { width: 100%; }
 
