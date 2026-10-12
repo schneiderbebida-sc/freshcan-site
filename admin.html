@@ -308,6 +308,12 @@
       return { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` };
     }
 
+    // Categorias fixas do site (definidas em js/products.js) não têm linha em
+    // menu_categories — excluir não desfaz nada, só volta a aparecer no próximo
+    // carregamento. Captura os ids ANTES do menu-dynamic.js mesclar as cadastradas
+    // pelo admin, pra só oferecer excluir nessas últimas.
+    const STATIC_CATEGORY_IDS = new Set((window.PRODUCT_CATEGORIES || []).map((c) => c.id));
+
     /* --- Menu hambúrguer: cada bloco de gestão (Clientes, Regras de saldo, Categorias...)
        vira uma "seção" exibida sozinha de cada vez, escolhida pelo menu lateral — antes
        tudo ficava empilhado na mesma tela e ficava poluído pra quem administra. --- */
@@ -508,6 +514,7 @@
         const count = window.PRODUCTS.filter((p) => p.category === cat.id).length;
         const isAlcohol = ALCOHOL_CATEGORIES.includes(cat.id);
         const enabled = !!enabledById[cat.id];
+        const excluivel = !STATIC_CATEGORY_IDS.has(cat.id);
         const row = document.createElement("div");
         row.className = "data-row";
         row.innerHTML = `
@@ -518,6 +525,7 @@
           <div class="right">
             <span class="row-status ${isAlcohol ? "warn" : enabled ? "on" : "off"}">${isAlcohol ? "Contém álcool" : enabled ? "Ativo" : "Inativo"}</span>
             <label class="toggle-switch"><input type="checkbox" ${enabled ? "checked" : ""}><span class="track"></span></label>
+            ${excluivel ? `<button type="button" class="btn-excluir" title="Excluir categoria">🗑️</button>` : ""}
           </div>`;
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
           await fetch(`${window.FreshCan.API_URL}/api/admin/categories`, {
@@ -526,6 +534,19 @@
             body: JSON.stringify({ categoryId: cat.id, enabled: e.target.checked }),
           });
           carregarCategorias();
+        });
+        row.querySelector(".btn-excluir")?.addEventListener("click", async () => {
+          if (!confirm(`Excluir a categoria "${cat.label}"? Produtos cadastrados nela não serão apagados, mas ficam sem categoria válida. Essa ação não pode ser desfeita.`)) return;
+          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
+            method: "DELETE",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: cat.id }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir a categoria."); return; }
+          window.PRODUCT_CATEGORIES = (window.PRODUCT_CATEGORIES || []).filter((c) => c.id !== cat.id);
+          carregarCategorias();
+          carregarMenuCategorias();
         });
         wrap.appendChild(row);
       });
@@ -748,6 +769,7 @@
             if (!res.ok || !data.ok) { alert(data.error || "Não foi possível excluir a categoria."); return; }
             window.PRODUCT_CATEGORIES = (window.PRODUCT_CATEGORIES || []).filter((cat) => cat.id !== c.id);
             carregarMenuCategorias();
+            carregarCategorias();
           });
           wrap.appendChild(row);
         });
