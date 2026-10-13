@@ -9,10 +9,17 @@ const WHATSAPP_NUMBER = "5547933860900"; // (47) 93386-0900
 // Produção (freshcan.com.br, GitHub Pages) usa a API de produção; qualquer outro
 // host (localhost, preview do Vercel) usa a API de homologação automaticamente —
 // evita manter dois arquivos divergentes entre as branches main/staging.
+//
+// O endereço de homologação é o alias que a própria Vercel gera pra branch
+// "staging" do projeto freshcan-api (sempre aponta pro último deploy dela).
+// Antes apontava pra "freshcan-api-staging.vercel.app", um deploy avulso que
+// nunca foi conectado ao GitHub e ficou congelado numa versão antiga — nenhum
+// push novo chegava lá, então testes em homologação usavam API desatualizada
+// sem ninguém perceber.
 const FRESHCAN_API_URL =
   window.location.hostname === "freshcan.com.br"
     ? "https://freshcan-api.vercel.app"
-    : "https://freshcan-api-staging.vercel.app";
+    : "https://freshcan-api-git-staging-latamtransfer.vercel.app";
 
 /* --- Navegação: some/aparece fundo sólido ao rolar --- */
 function initNav() {
