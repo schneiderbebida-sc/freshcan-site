@@ -439,6 +439,12 @@
       return d || "—";
     }
 
+    function formatarCpf(digits) {
+      const d = String(digits || "").replace(/\D/g, "");
+      if (d.length !== 11) return d || "—";
+      return `${d.slice(0, 3)}.${d.slice(3, 6)}.${d.slice(6, 9)}-${d.slice(9)}`;
+    }
+
     async function carregarAssinantes() {
       const res = await fetch(`${window.FreshCan.API_URL}/api/admin/subscribers`, { headers: apiHeaders() });
       const data = await res.json();
@@ -458,7 +464,7 @@
         row.innerHTML = `
           <div class="main">
             <div class="name">${s.guardian_name} — ${s.child_name || "—"}</div>
-            <div class="meta">📱 ${formatarTelefone(s.whatsapp)} · ${s.school || "—"} · Plano R$${s.plan_value}/mês · ${s.payment_method} · Código ${s.redemption_code}</div>
+            <div class="meta">🪪 ${formatarCpf(s.cpf)} · 📱 ${formatarTelefone(s.whatsapp)} · ${s.school || "—"} · Plano R$${s.plan_value}/mês · ${s.payment_method} · Código ${s.redemption_code}</div>
           </div>
           <div class="right">
             <span class="row-status ${statusClass}">${statusLabel}</span>
