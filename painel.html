@@ -52,16 +52,31 @@
 <section class="section" style="padding-top:60px;">
   <div class="container">
 
-    <!-- Portão de acesso -->
+    <!-- Portão de acesso — 2 passos: código, depois CPF do responsável pra confirmar
+         que é a mesma pessoa antes de liberar o painel. -->
     <div id="painel-gate" class="gate-shell reveal">
       <div class="ico">🔑</div>
       <h2>Acesso ao painel</h2>
-      <p>Digite o código de retirada que você recebeu por e-mail (ou na tela) ao confirmar a assinatura.</p>
-      <div class="form-field">
-        <label for="gate-codigo">Código</label>
-        <input type="text" id="gate-codigo" maxlength="6" style="text-transform:uppercase;" placeholder="EX: AB12CD">
+
+      <div id="gate-step-codigo">
+        <p>Digite o código de retirada que você recebeu por e-mail (ou na tela) ao confirmar a assinatura.</p>
+        <div class="form-field">
+          <label for="gate-codigo">Código</label>
+          <input type="text" id="gate-codigo" maxlength="6" style="text-transform:uppercase;" placeholder="EX: AB12CD">
+        </div>
+        <button id="gate-continuar" class="btn btn-coral btn-block">Continuar</button>
       </div>
-      <button id="gate-submit" class="btn btn-coral btn-block">Entrar</button>
+
+      <div id="gate-step-cpf" hidden>
+        <p>Agora confirme o CPF do responsável usado no cadastro da assinatura.</p>
+        <div class="form-field">
+          <label for="gate-cpf">CPF do responsável</label>
+          <input type="text" id="gate-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14">
+        </div>
+        <button id="gate-submit" class="btn btn-coral btn-block">Entrar</button>
+        <button id="gate-voltar" type="button" class="btn btn-outline btn-block" style="margin-top:10px;">← Trocar código</button>
+      </div>
+
       <p id="gate-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
     </div>
 
@@ -266,39 +281,61 @@
     }
 
     let codigoAtual = null;
+    let cpfAtual = null;
 
     async function chamarPainel(body) {
       const res = await fetch(`${window.FreshCan.API_URL}/api/painel`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ ...body, codigo: codigoAtual, cpf: cpfAtual }),
       });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.error || "Não foi possível acessar o painel.");
       return data;
     }
 
-    document.getElementById("gate-submit").addEventListener("click", async () => {
+    const stepCodigo = document.getElementById("gate-step-codigo");
+    const stepCpf = document.getElementById("gate-step-cpf");
+    const gateError = document.getElementById("gate-error");
+
+    document.getElementById("gate-continuar").addEventListener("click", () => {
+      gateError.style.display = "none";
       const codigo = document.getElementById("gate-codigo").value.trim().toUpperCase();
-      const errorEl = document.getElementById("gate-error");
-      errorEl.style.display = "none";
       if (!codigo) return;
+      codigoAtual = codigo;
+      stepCodigo.hidden = true;
+      stepCpf.hidden = false;
+      document.getElementById("gate-cpf").focus();
+    });
+
+    document.getElementById("gate-voltar").addEventListener("click", () => {
+      gateError.style.display = "none";
+      stepCpf.hidden = true;
+      stepCodigo.hidden = false;
+      document.getElementById("gate-cpf").value = "";
+    });
+
+    document.getElementById("gate-submit").addEventListener("click", async () => {
+      const cpf = document.getElementById("gate-cpf").value.trim();
+      gateError.style.display = "none";
+      if (!cpf) return;
+      cpfAtual = cpf;
       try {
-        const data = await chamarPainel({ codigo });
-        codigoAtual = codigo;
+        const data = await chamarPainel({});
         renderPainel(data);
         document.getElementById("painel-gate").hidden = true;
         document.getElementById("painel-app").hidden = false;
       } catch (err) {
-        errorEl.textContent = err.message;
-        errorEl.style.display = "block";
+        cpfAtual = null;
+        gateError.textContent = err.message;
+        gateError.style.display = "block";
       }
     });
 
     document.getElementById("p-save-categorias").addEventListener("click", async () => {
       const categoriasPermitidas = Array.from(productsWrap.querySelectorAll("input:checked")).map((i) => i.value);
       try {
-        const data = await chamarPainel({ codigo: codigoAtual, acao: "atualizar-categorias", categoriasPermitidas });
+        const data = await chamarPainel({ acao: "atualizar-categorias", categoriasPermitidas });
         renderPainel(data);
         const savedEl = document.getElementById("p-categorias-saved");
         savedEl.style.display = "inline";
