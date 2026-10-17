@@ -91,6 +91,7 @@
               <p id="balcao-meta">—</p>
             </div>
           </div>
+          <p id="balcao-foto-dica" style="display:none; font-size:11.5px; color:var(--ink-soft); margin:-14px 0 16px;">🔍 Toque na foto para ampliar e comparar com quem está no balcão.</p>
           <dl class="panel-fields" style="margin-bottom:20px;">
             <div class="panel-field"><dt>Saldo restante</dt><dd id="balcao-saldo">—</dd></div>
           </dl>
@@ -281,6 +282,12 @@
 
 <div class="footer-bottom" style="max-width:var(--container); margin:0 auto; padding:30px 32px; color:var(--ink-soft); font-size:12.5px;">
   <span>FreshCan — Área interna, uso exclusivo da equipe.</span>
+</div>
+
+<!-- Lightbox da foto do cliente — ampliar pra comparar com quem está no balcão -->
+<div id="photo-lightbox" class="photo-lightbox" hidden>
+  <button type="button" id="photo-lightbox-close" class="photo-lightbox-close" aria-label="Fechar foto ampliada">✕</button>
+  <img id="photo-lightbox-img" src="" alt="Foto do cliente ampliada">
 </div>
 
 <script src="js/products.js"></script>
@@ -983,6 +990,21 @@
       }
     });
 
+    // ---------- Lightbox da foto (ampliar pra comparar no balcão) ----------
+    const photoLightbox = document.getElementById("photo-lightbox");
+    const photoLightboxImg = document.getElementById("photo-lightbox-img");
+    function abrirFotoLightbox(src) {
+      photoLightboxImg.src = src;
+      photoLightbox.hidden = false;
+    }
+    function fecharFotoLightbox() {
+      photoLightbox.hidden = true;
+      photoLightboxImg.src = "";
+    }
+    document.getElementById("photo-lightbox-close").addEventListener("click", fecharFotoLightbox);
+    photoLightbox.addEventListener("click", (e) => { if (e.target === photoLightbox) fecharFotoLightbox(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !photoLightbox.hidden) fecharFotoLightbox(); });
+
     // ---------- Balcão de retirada ----------
     const balcaoEmpty = document.getElementById("balcao-empty");
     const balcaoResult = document.getElementById("balcao-result");
@@ -1091,9 +1113,17 @@
         document.getElementById("balcao-child-name").textContent = data.assinante.childName || "—";
         document.getElementById("balcao-meta").textContent = `Responsável: ${data.assinante.guardianName || "—"} · ${data.assinante.school || "—"}`;
         document.getElementById("balcao-saldo").textContent = `R$${Number(data.saldo.restante).toFixed(2)} de R$${Number(data.saldo.totalCiclo).toFixed(2)}`;
-        document.getElementById("balcao-avatar").innerHTML = data.assinante.photoUrl
-          ? `<img src="${data.assinante.photoUrl}" alt="Foto da criança">`
+        const balcaoAvatarEl = document.getElementById("balcao-avatar");
+        const balcaoFotoDica = document.getElementById("balcao-foto-dica");
+        balcaoAvatarEl.innerHTML = data.assinante.photoUrl
+          ? `<img src="${data.assinante.photoUrl}" alt="Foto do cliente">`
           : "🧒";
+        balcaoAvatarEl.classList.toggle("has-photo", !!data.assinante.photoUrl);
+        balcaoFotoDica.style.display = data.assinante.photoUrl ? "block" : "none";
+        // onclick (em vez de addEventListener) pra não empilhar handlers a cada validação de código.
+        balcaoAvatarEl.onclick = data.assinante.photoUrl
+          ? () => abrirFotoLightbox(data.assinante.photoUrl)
+          : null;
         renderProdutosBalcao(data.produtos);
         balcaoEmpty.hidden = true;
         balcaoResult.hidden = false;
