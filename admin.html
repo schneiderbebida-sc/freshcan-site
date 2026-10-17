@@ -28,7 +28,7 @@
 <nav class="admin-section-nav" id="admin-section-nav" aria-label="Seções do painel">
   <button type="button" class="admin-section-nav-close" id="admin-section-nav-close" aria-label="Fechar menu">✕</button>
   <button type="button" class="admin-section-link" data-target="balcao" data-roles="admin,atendente">Balcão de retirada</button>
-  <button type="button" class="admin-section-link" data-target="clientes" data-roles="admin">Clientes</button>
+  <button type="button" class="admin-section-link" data-target="clientes" data-roles="admin,atendente">Clientes</button>
   <button type="button" class="admin-section-link" data-target="saldo" data-roles="admin">Regras de saldo</button>
   <button type="button" class="admin-section-link" data-target="categorias" data-roles="admin">Categorias do catálogo</button>
   <button type="button" class="admin-section-link" data-target="escolas" data-roles="admin">Parceiros</button>
@@ -103,12 +103,12 @@
         </div>
       </div>
 
-      <!-- Clientes — admin -->
-      <div class="internal-section reveal" data-roles="admin" data-section="clientes">
+      <!-- Clientes — admin (consulta + ativar/desativar) e atendente (só consulta) -->
+      <div class="internal-section reveal" data-roles="admin,atendente" data-section="clientes">
         <div class="internal-section-head">
           <div>
             <h3>Clientes</h3>
-            <p>Ative ou desative o acesso de cada responsável.</p>
+            <p id="clientes-subtitle">Ative ou desative o acesso de cada responsável.</p>
           </div>
         </div>
         <div id="admin-subscribers"></div>
@@ -363,7 +363,15 @@
       const roleTag = document.getElementById("role-tag");
       roleTag.textContent = role === "admin" ? "Administrador" : "Atendente de loja";
       roleTag.style.display = "inline-block";
-      adminMenuToggle.style.display = role === "admin" ? "flex" : "none";
+      // Admin tem 8 seções, atendente agora tem 2 (Balcão + Clientes) — ambos
+      // precisam do menu hambúrguer pra trocar de seção.
+      adminMenuToggle.style.display = "flex";
+      const clientesSubtitle = document.getElementById("clientes-subtitle");
+      if (clientesSubtitle) {
+        clientesSubtitle.textContent = role === "admin"
+          ? "Ative ou desative o acesso de cada responsável."
+          : "Consulta de dados do cliente — ativar/desativar é restrito ao administrador.";
+      }
     }
 
     async function carregarTudo() {
@@ -378,6 +386,8 @@
           carregarMenuCategorias(),
           carregarMenuProdutos(),
         ]);
+      } else if (currentRole === "atendente") {
+        await carregarAssinantes();
       }
     }
 
@@ -457,6 +467,9 @@
         wrap.innerHTML = `<p style="font-size:13px; color:var(--ink-soft);">Nenhum assinante ainda.</p>`;
         return;
       }
+      // Atendente só consulta — o toggle de ativar/desativar é exclusivo do admin
+      // (o backend também recusa o PATCH pra quem não é admin, isso aqui é só a tela).
+      const podeEditar = currentRole === "admin";
       data.subscribers.forEach((s) => {
         const [statusClass, statusLabel] = STATUS_LABEL[s.status] || ["off", s.status];
         const row = document.createElement("div");
@@ -468,17 +481,19 @@
           </div>
           <div class="right">
             <span class="row-status ${statusClass}">${statusLabel}</span>
-            <label class="toggle-switch"><input type="checkbox" ${s.status === "active" ? "checked" : ""}><span class="track"></span></label>
+            ${podeEditar ? `<label class="toggle-switch"><input type="checkbox" ${s.status === "active" ? "checked" : ""}><span class="track"></span></label>` : ""}
           </div>`;
-        row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
-          const novoStatus = e.target.checked ? "active" : "inactive";
-          await fetch(`${window.FreshCan.API_URL}/api/admin/subscribers`, {
-            method: "PATCH",
-            headers: apiHeaders(),
-            body: JSON.stringify({ id: s.id, status: novoStatus }),
+        if (podeEditar) {
+          row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
+            const novoStatus = e.target.checked ? "active" : "inactive";
+            await fetch(`${window.FreshCan.API_URL}/api/admin/subscribers`, {
+              method: "PATCH",
+              headers: apiHeaders(),
+              body: JSON.stringify({ id: s.id, status: novoStatus }),
+            });
+            carregarAssinantes();
           });
-          carregarAssinantes();
-        });
+        }
         wrap.appendChild(row);
       });
     }
