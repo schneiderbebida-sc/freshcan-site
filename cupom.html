@@ -139,7 +139,29 @@
 <script>
   document.getElementById("year").textContent = new Date().getFullYear();
 
-  const VALID_COUPONS = ["FRESH10", "PRIMEIRACOMPRA", "VERAO2026", "FRETEGRATIS"];
+  // validFrom/validUntil no formato "AAAA-MM-DD" (inclusive). Use null quando não houver restrição.
+  const COUPONS = {
+    FRESH10: { validFrom: null, validUntil: null },
+    PRIMEIRACOMPRA: { validFrom: null, validUntil: null },
+    VERAO2026: { validFrom: null, validUntil: null },
+    FRETEGRATIS: { validFrom: null, validUntil: null },
+    VIVARUN26: { validFrom: null, validUntil: "2026-11-14" },
+  };
+
+  function todayStr() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function checkCoupon(code) {
+    const coupon = COUPONS[code];
+    if (!coupon) return { status: "not_found" };
+    const today = todayStr();
+    if (coupon.validFrom && today < coupon.validFrom) return { status: "not_started", coupon };
+    if (coupon.validUntil && today > coupon.validUntil) return { status: "expired", coupon };
+    return { status: "valid", coupon };
+  }
 
   document.addEventListener("DOMContentLoaded", () => {
     const link = window.FreshCan.buildWhatsAppLink("Olá, FreshCan! Vim pelo site e gostaria de saber mais sobre os produtos. 😊");
@@ -151,9 +173,16 @@
     form.addEventListener("submit", (e) => {
       e.preventDefault();
       const code = document.getElementById("coupon-input").value.trim().toUpperCase();
-      if (VALID_COUPONS.includes(code)) {
+      const result = checkCoupon(code);
+      if (result.status === "valid") {
         feedback.style.color = "#1a7a4c";
         feedback.textContent = `Cupom ${code} válido! Informe esse código ao finalizar seu pedido pelo WhatsApp.`;
+      } else if (result.status === "expired") {
+        feedback.style.color = "#e44322";
+        feedback.textContent = `Cupom ${code} expirou em ${result.coupon.validUntil.split("-").reverse().join("/")}.`;
+      } else if (result.status === "not_started") {
+        feedback.style.color = "#e44322";
+        feedback.textContent = `Cupom ${code} só é válido a partir de ${result.coupon.validFrom.split("-").reverse().join("/")}.`;
       } else {
         feedback.style.color = "#e44322";
         feedback.textContent = "Cupom não encontrado. Confira os códigos disponíveis abaixo.";
