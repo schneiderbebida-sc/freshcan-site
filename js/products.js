@@ -176,6 +176,14 @@ const PRODUCTS = [
     image: "images/shake-pacoca.jfif",
   },
   {
+    id: "whey-banana-baunilha",
+    name: "Whey Protein Banana e Baunilha",
+    category: "shakes",
+    price: 30.00,
+    desc: "Whey protein batido com banana e baunilha — 500ml.",
+    image: null,
+  },
+  {
     id: "shake-banana-cacau",
     name: "Shake de Banana Cacau Fit",
     category: "shakes",
@@ -201,6 +209,14 @@ const PRODUCTS = [
     desc: "Água de coco natural e refrescante — 330ml.",
     image: "images/coconut-fresh.jfif",
   },
+  {
+    id: "coconut-fresh-500",
+    name: "Coconut Fresh",
+    category: "agua-coco",
+    price: 26.00,
+    desc: "Água de coco natural e refrescante — 500ml.",
+    image: "images/coconut-fresh.jfif",
+  },
 
   /* ---------------- Suco ---------------- */
   {
@@ -218,6 +234,14 @@ const PRODUCTS = [
     price: 29.90,
     desc: "Suco natural de açaí com guaraná — 500ml.",
     image: "images/suco-acai-abacaxi-xaropedeguarana.jpeg",
+  },
+  {
+    id: "suco-acai-coco-guarana",
+    name: "Suco de Açaí com Água de Coco e Guaraná",
+    category: "suco",
+    price: 29.90,
+    desc: "Suco natural de açaí com água de coco e guaraná — 500ml.",
+    image: null,
   },
 
   /* ---------------- Panquecas ---------------- */
