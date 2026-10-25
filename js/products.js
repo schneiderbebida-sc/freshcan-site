@@ -117,10 +117,10 @@ const PRODUCTS = [
   },
   {
     id: "soda-uva-verde",
-    name: "Soda Italiana Uva Verde",
+    name: "Soda Italiana Maçã Verde",
     category: "sodas",
-    price: 27.90,
-    desc: "Soda italiana com xarope de uva verde — 500ml.",
+    price: 28.00,
+    desc: "Soda italiana com xarope de maçã verde — 500ml.",
     image: "images/soda-uva-verde.jfif",
   },
   {
@@ -148,14 +148,6 @@ const PRODUCTS = [
     price: 20.00,
     desc: "Isotônico natural de melancia com gengibre — 500ml.",
     image: "images/isotonico-melancia-gengibre.jfif",
-  },
-  {
-    id: "isotonico-maracuja",
-    name: "Maracujá Isotônico Fresh",
-    category: "isotonicos",
-    price: 19.90,
-    desc: "Isotônico natural sabor maracujá — 500ml.",
-    image: "images/isotonico-maracuja.jfif",
   },
 
   /* ---------------- Shakes & Frapês ---------------- */
@@ -229,10 +221,10 @@ const PRODUCTS = [
   },
   {
     id: "suco-acai-guarana",
-    name: "Suco de Açaí e Guaraná",
+    name: "Açaí Fresh",
     category: "suco",
-    price: 29.90,
-    desc: "Suco natural de açaí com guaraná — 500ml.",
+    price: 30.00,
+    desc: "Suco natural de açaí — 500ml.",
     image: "images/suco-acai-abacaxi-xaropedeguarana.jpeg",
   },
   {
@@ -336,15 +328,6 @@ const PRODUCTS = [
     price: 20.00,
     desc: "Banana, doce de leite, chantilly e biscoito crocante — 250ml.",
     image: "images/banoffee.jpg",
-  },
-  {
-    id: "tiramisu",
-    name: "Tiramisù",
-    category: "sobremesas",
-    price: 39.90,
-    desc: "Camadas de café, mascarpone e cacau, no clássico italiano — 250ml.",
-    image: "images/tiramisu.jpg",
-    badge: "Mais vendido",
   },
 
   /* ---------------- Castanhas ---------------- */
