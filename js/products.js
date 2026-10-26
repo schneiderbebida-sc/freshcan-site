@@ -231,7 +231,7 @@ const PRODUCTS = [
     id: "suco-acai-coco-guarana",
     name: "Suco de Açaí com Água de Coco e Guaraná",
     category: "suco",
-    price: 29.90,
+    price: 30.00,
     desc: "Suco natural de açaí com água de coco e guaraná — 500ml.",
     image: null,
   },
