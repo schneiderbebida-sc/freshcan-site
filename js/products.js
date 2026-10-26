@@ -221,19 +221,11 @@ const PRODUCTS = [
   },
   {
     id: "suco-acai-guarana",
-    name: "Açaí Fresh",
-    category: "suco",
-    price: 30.00,
-    desc: "Suco natural de açaí — 500ml.",
-    image: "images/suco-acai-abacaxi-xaropedeguarana.jpeg",
-  },
-  {
-    id: "suco-acai-coco-guarana",
     name: "Suco de Açaí com Água de Coco e Guaraná",
     category: "suco",
-    price: 29.90,
+    price: 30.00,
     desc: "Suco natural de açaí com água de coco e guaraná — 500ml.",
-    image: null,
+    image: "images/suco-acai-abacaxi-xaropedeguarana.jpeg",
   },
 
   /* ---------------- Panquecas ---------------- */
