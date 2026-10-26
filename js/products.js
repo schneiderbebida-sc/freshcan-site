@@ -26,7 +26,7 @@ const PRODUCT_CATEGORIES = [
   { id: "vinho",       label: "Vinho",             icon: "" },
   { id: "sodas",       label: "Sodas Italianas",   icon: "" },
   { id: "isotonicos",  label: "Isotônicos",        icon: "" },
-  { id: "shakes",      label: "Shakes & Frapês",   icon: "" },
+  { id: "Whey",      label: "Whey protein",        icon: "" },
   { id: "agua-coco",   label: "Água de Coco",      icon: "" },
   { id: "suco",        label: "Suco",              icon: "" },
   { id: "panquecas",   label: "Panquecas",         icon: "" },
@@ -142,19 +142,19 @@ const PRODUCTS = [
     image: "images/isotonico-melancia-gengibre.jfif",
   },
 
-  /* ---------------- Shakes & Frapês ---------------- */
+  /* ---------------- Whey protein ---------------- */
   {
-    id: "shake-vanilla",
-    name: "Shake Proteico de Vanilla",
-    category: "shakes",
+    id: "Whey-vanilla",
+    name: "Whey Proteico de Vanilla",
+    category: "Whey",
     price: 30.00,
     desc: "Shake proteico cremoso sabor vanilla — 500ml.",
     image: "images/shake-vanilla.jfif",
   },
   {
-    id: "shake-pacoca",
-    name: "Shake Proteico de Paçoca",
-    category: "shakes",
+    id: "Whey-pacoca",
+    name: "Whey Proteico de Paçoca",
+    category: "Whey",
     price: 30.00,
     desc: "Shake proteico com sabor de paçoca — 500ml.",
     image: "images/shake-pacoca.jfif",
@@ -162,17 +162,17 @@ const PRODUCTS = [
   {
     id: "whey-banana-baunilha",
     name: "Whey Protein Banana e Baunilha",
-    category: "shakes",
+    category: "Whey",
     price: 30.00,
     desc: "Whey protein batido com banana e baunilha — 500ml.",
     image: null,
   },
   {
-    id: "shake-banana-cacau",
-    name: "Shake de Banana Cacau Fit",
-    category: "shakes",
+    id: "Whey-banana-cacau",
+    name: "Whey de Banana Cacau Fit",
+    category: "Whey",
     price: 30.00,
-    desc: "Shake fit de banana com cacau — 250ml.",
+    desc: "Whey fit de banana com cacau — 250ml.",
     image: "images/shake-banana-cacau.jfif",
   },
   {
