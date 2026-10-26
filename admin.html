@@ -776,6 +776,7 @@
             <div class="right">
               <span class="row-status ${c.active ? "on" : "off"}">${c.active ? "Ativo" : "Inativo"}</span>
               <label class="toggle-switch"><input type="checkbox" ${c.active ? "checked" : ""}><span class="track"></span></label>
+              <button type="button" class="btn-editar" title="Editar nome da categoria">✏️</button>
               <button type="button" class="btn-excluir" title="Excluir categoria">🗑️</button>
             </div>`;
           row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
@@ -785,6 +786,21 @@
               body: JSON.stringify({ id: c.id, active: e.target.checked }),
             });
             carregarMenuCategorias();
+          });
+          row.querySelector(".btn-editar").addEventListener("click", async () => {
+            const novoNome = prompt(`Novo nome para a categoria "${c.label}" (código "${c.id}" continua o mesmo):`, c.label);
+            if (novoNome === null) return;
+            const nomeLimpo = novoNome.trim();
+            if (!nomeLimpo || nomeLimpo === c.label) return;
+            const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
+              method: "PATCH",
+              headers: apiHeaders(),
+              body: JSON.stringify({ id: c.id, label: nomeLimpo }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) { alert(data.error || "Não foi possível renomear a categoria."); return; }
+            carregarMenuCategorias();
+            carregarCategorias();
           });
           row.querySelector(".btn-excluir").addEventListener("click", async () => {
             if (!confirm(`Excluir a categoria "${c.label}"? Produtos cadastrados nela não serão apagados, mas ficam sem categoria válida. Essa ação não pode ser desfeita.`)) return;
