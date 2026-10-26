@@ -165,7 +165,7 @@ const PRODUCTS = [
     category: "Whey",
     price: 30.00,
     desc: "Whey protein batido com banana e baunilha — 500ml.",
-    image: null,
+    image: "images/0ADAE598-4243-4602-ABF9-BF4EE21D35E9.PNG",
   },
   {
     id: "Whey-banana-cacau",
