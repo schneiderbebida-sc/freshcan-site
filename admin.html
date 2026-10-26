@@ -553,6 +553,7 @@
           <div class="right">
             <span class="row-status ${isAlcohol ? "warn" : enabled ? "on" : "off"}">${isAlcohol ? "Contém álcool" : enabled ? "Ativo" : "Inativo"}</span>
             <label class="toggle-switch"><input type="checkbox" ${enabled ? "checked" : ""}><span class="track"></span></label>
+            ${excluivel ? `<button type="button" class="btn-editar" title="Editar nome da categoria">✏️</button>` : ""}
             ${excluivel ? `<button type="button" class="btn-excluir" title="Excluir categoria">🗑️</button>` : ""}
           </div>`;
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
@@ -562,6 +563,22 @@
             body: JSON.stringify({ categoryId: cat.id, enabled: e.target.checked }),
           });
           carregarCategorias();
+        });
+        row.querySelector(".btn-editar")?.addEventListener("click", async () => {
+          const novoNome = prompt(`Novo nome para a categoria "${cat.label}" (código "${cat.id}" continua o mesmo):`, cat.label);
+          if (novoNome === null) return;
+          const nomeLimpo = novoNome.trim();
+          if (!nomeLimpo || nomeLimpo === cat.label) return;
+          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/menu?kind=categories`, {
+            method: "PATCH",
+            headers: apiHeaders(),
+            body: JSON.stringify({ id: cat.id, label: nomeLimpo }),
+          });
+          const data = await res.json();
+          if (!res.ok || !data.ok) { alert(data.error || "Não foi possível renomear a categoria."); return; }
+          cat.label = nomeLimpo;
+          carregarCategorias();
+          carregarMenuCategorias();
         });
         row.querySelector(".btn-excluir")?.addEventListener("click", async () => {
           if (!confirm(`Excluir a categoria "${cat.label}"? Produtos cadastrados nela não serão apagados, mas ficam sem categoria válida. Essa ação não pode ser desfeita.`)) return;
