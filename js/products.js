@@ -71,15 +71,7 @@ const PRODUCTS = [
     desc: "Blend cítrico da casa com maracujá e alecrim — 500ml.",
     image: "images/Vivapark Spritz Fresh.jfif",
   },
-  {
-    id: "drink-pina-colada",
-    name: "Fresh Piña Colada",
-    category: "drinks",
-    price: 28.00,
-    desc: "Piña colada cremosa, no clima tropical — 500ml.",
-    image: "images/Fresh Piña Colada.jfif",
-  },
-
+ 
   /* ---------------- Vinho ---------------- */
   {
     id: "vinho-branco",
