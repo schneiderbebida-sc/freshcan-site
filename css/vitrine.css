@@ -1,0 +1,217 @@
+/* ==========================================================================
+   FreshCan — Vitrine (showroom digital)
+   --------------------------------------------------------------------------
+   Usa os design tokens de style.css (cores, fontes, --radius, --ease).
+   Só o que é realmente novo nesta página vive aqui: hero em mosaico,
+   navegação por categorias (pills com scroll-spy), destaque de mais
+   vendido, seções editoriais por categoria e a vitrine "em breve".
+   ========================================================================== */
+
+/* --------------------------------------------------------------------- */
+/* Hero — mosaico cinematográfico                                        */
+/* --------------------------------------------------------------------- */
+.vt-hero {
+  position: relative;
+  min-height: 94svh;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  background: var(--ink);
+}
+.vt-hero-bg { position: absolute; inset: 0; }
+.vt-hero-mosaic {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 10px;
+  padding: 10px;
+  will-change: transform;
+}
+.vt-hero-mosaic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+.vt-hero-mosaic img:nth-child(1) { grid-column: 3 / 6; grid-row: 1 / 3; }
+.vt-hero-mosaic img:nth-child(2) { grid-column: 6 / 7; grid-row: 1 / 2; }
+.vt-hero-mosaic img:nth-child(3) { grid-column: 6 / 7; grid-row: 2 / 3; }
+.vt-hero-mosaic img:nth-child(4) { grid-column: 1 / 3; grid-row: 1 / 2; }
+.vt-hero-mosaic img:nth-child(5) { grid-column: 1 / 3; grid-row: 2 / 3; }
+.vt-hero-bg::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(100deg, rgba(18,33,29,.97) 0%, rgba(18,33,29,.88) 30%, rgba(18,33,29,.4) 55%, rgba(18,33,29,.68) 100%);
+}
+.vt-hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 600px;
+  padding: 0 32px;
+  margin-left: 6vw;
+  color: #fff;
+}
+.vt-hero-content .eyebrow { color: var(--coral); }
+.vt-hero-content h1 {
+  font-size: clamp(38px, 6vw, 72px);
+  color: #fff;
+  text-wrap: balance;
+}
+.vt-hero-content p {
+  margin-top: 20px;
+  max-width: 480px;
+  font-size: 17px;
+  color: rgba(255,255,255,.86);
+}
+.vt-hero-content .hero-actions { justify-content: flex-start; margin-top: 32px; }
+
+@media (max-width: 760px) {
+  .vt-hero-mosaic img:nth-child(2),
+  .vt-hero-mosaic img:nth-child(3),
+  .vt-hero-mosaic img:nth-child(4),
+  .vt-hero-mosaic img:nth-child(5) { display: none; }
+  .vt-hero-mosaic img:nth-child(1) { grid-column: 1 / 7; grid-row: 1 / 3; }
+  .vt-hero-content { margin-left: 0; max-width: 100%; }
+  .vt-hero-content .hero-actions { justify-content: center; }
+  .vt-hero-content { text-align: center; }
+  .vt-hero-content p { margin-left: auto; margin-right: auto; }
+}
+
+/* --------------------------------------------------------------------- */
+/* Navegação por categorias — pills com scroll-spy                       */
+/* --------------------------------------------------------------------- */
+.vt-catnav {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 400;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border-bottom: 1px solid var(--line);
+}
+.vt-catnav-inner {
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 14px 32px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.vt-catnav-inner::-webkit-scrollbar { display: none; }
+.vt-pill {
+  flex: 0 0 auto;
+  padding: 9px 18px;
+  border-radius: 100px;
+  font-size: 13.5px;
+  font-weight: 600;
+  font-family: var(--font-body);
+  color: var(--ink-soft);
+  border: 1.5px solid var(--line);
+  background: transparent;
+  transition: background .25s ease, border-color .25s ease, color .25s ease;
+}
+.vt-pill:hover { border-color: var(--coral); color: var(--ink); }
+.vt-pill.is-active { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* --------------------------------------------------------------------- */
+/* Destaque — mais vendido                                                */
+/* --------------------------------------------------------------------- */
+.vt-spotlight-card {
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 56px;
+  align-items: center;
+  background: var(--cream);
+  border-radius: calc(var(--radius) + 6px);
+  padding: 48px;
+}
+.vt-spotlight-media { position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 4/5; }
+.vt-spotlight-media img { width: 100%; height: 100%; object-fit: cover; }
+.vt-spotlight-body .eyebrow { margin-bottom: 18px; }
+.vt-spotlight-body h2 { font-size: clamp(28px, 4vw, 44px); }
+.vt-spotlight-body p { margin-top: 18px; font-size: 16.5px; color: var(--ink-soft); max-width: 420px; }
+.vt-spotlight-footer { display: flex; align-items: center; gap: 22px; margin-top: 30px; }
+.vt-spotlight-price { font-family: var(--font-mono); font-weight: 700; font-size: 26px; color: var(--coral); }
+
+@media (max-width: 860px) {
+  .vt-spotlight-card { grid-template-columns: 1fr; padding: 28px; gap: 28px; }
+  .vt-spotlight-media { aspect-ratio: 16/10; }
+}
+
+/* --------------------------------------------------------------------- */
+/* Seções por categoria                                                  */
+/* --------------------------------------------------------------------- */
+.vt-cat-section { padding: 90px 0; }
+.vt-cat-section.is-alt { background: var(--wave); }
+.vt-cat-head { display: flex; align-items: flex-end; gap: 22px; margin-bottom: 44px; }
+.vt-cat-index {
+  font-family: var(--font-mono);
+  font-size: 64px;
+  font-weight: 700;
+  color: var(--line);
+  line-height: .9;
+}
+.vt-cat-head-text h2 { font-size: clamp(26px, 3.4vw, 38px); }
+.vt-cat-head-text p { margin-top: 8px; font-size: 15px; color: var(--ink-soft); }
+
+.vt-cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; }
+.vt-cat-grid [data-featured="true"] { grid-column: span 2; grid-row: span 2; }
+.vt-cat-grid .product-card-media { overflow: hidden; }
+.vt-cat-grid .product-card:hover .product-card-media img { transform: scale(1.06); }
+.vt-cat-grid .product-card-media img { transition: transform .6s var(--ease); }
+
+@media (max-width: 1080px) { .vt-cat-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 760px) { .vt-cat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) {
+  .vt-cat-grid { grid-template-columns: 1fr; }
+  .vt-cat-grid [data-featured="true"] { grid-column: span 1; grid-row: span 1; }
+  .vt-cat-index { font-size: 44px; }
+}
+
+/* --------------------------------------------------------------------- */
+/* Em breve — tira horizontal                                            */
+/* --------------------------------------------------------------------- */
+.vt-soon-row {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(208px, 1fr);
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-snap-type: x mandatory;
+}
+.vt-soon-row::-webkit-scrollbar { height: 6px; }
+.vt-soon-row::-webkit-scrollbar-thumb { background: var(--line); border-radius: 10px; }
+.vt-soon-card {
+  scroll-snap-align: start;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: transform .35s var(--ease), box-shadow .35s var(--ease);
+}
+.vt-soon-card:hover { transform: translateY(-4px); box-shadow: 0 16px 30px rgba(18,33,29,.08); }
+.vt-soon-media { width: 100%; aspect-ratio: 1/1; }
+.vt-soon-card img { width: 100%; height: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+.vt-soon-placeholder { aspect-ratio: 1/1; font-size: 30px; }
+.vt-soon-tag {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--coral);
+  padding: 12px 12px 0;
+}
+.vt-soon-name { display: block; padding: 4px 12px 0; font-size: 13.5px; font-weight: 600; }
+.vt-soon-desc { display: block; padding: 4px 12px 14px; font-size: 12px; color: var(--ink-soft); line-height: 1.4; }
+
+/* --------------------------------------------------------------------- */
+/* Revelação ao rolar (elementos renderizados via JS)                    */
+/* --------------------------------------------------------------------- */
+/* Estado inicial oculto só por opacidade — o GSAP (js/vitrine.js) anima a
+   entrada (opacity/scale/y) via gsap.from(); se o GSAP não carregar ou o
+   usuário preferir menos movimento, o próprio JS força opacity:1 direto. */
+[data-reveal] { opacity: 0; }

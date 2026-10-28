@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo FreshCan</title>
+<meta name="description" content="Catálogo de produtos FreshCan, por categoria, com foto e composição — sem preço.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/catalogo.css">
+</head>
+<body>
+
+<section class="cat-cover" style="background-image: linear-gradient(180deg, rgba(18,33,29,.55) 0%, rgba(18,33,29,.4) 45%, rgba(18,33,29,.85) 100%), url('video/conteiner.JPG');">
+  <svg class="cat-cover-mark" viewBox="0 0 120 120" role="img" aria-label="Fresh Can">
+    <circle cx="60" cy="60" r="60" fill="#EA7913"/>
+    <text x="60" y="57" text-anchor="middle" font-family="Sora, sans-serif" font-weight="800" font-size="32" fill="#fff">fresh</text>
+    <text x="60" y="91" text-anchor="middle" font-family="Sora, sans-serif" font-weight="800" font-size="32" fill="#fff">can</text>
+  </svg>
+  <span class="eyebrow">Catálogo de produtos</span>
+  <h1>FreshCan</h1>
+  <p>Produtos organizados por categoria, com foto e composição de cada um.</p>
+</section>
+
+<main data-catalogo-root></main>
+
+<footer class="cat-footer">
+  <p>© <span id="cat-ano"></span> FreshCan</p>
+</footer>
+
+<script src="js/catalogo.js"></script>
+</body>
+</html>
