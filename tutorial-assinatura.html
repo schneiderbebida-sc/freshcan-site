@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial — Assinatura FreshCan</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#f5f3ef; --card:#ffffff; --text:#1c1f1a; --muted:#6b6f68;
+    --accent:#ff5a36; --accent-soft:#ffe4da; --border:#e6e2d4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#15170f; --card:#1f2217; --text:#f1efe9; --muted:#a3a79b;
+      --accent:#ff7a52; --accent-soft:#3a2015; --border:#2b2e22;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 16px 40px; display:flex; flex-direction:column; gap:14px;}
+  h1{font-size:1.25rem; margin:0;}
+  p.sub{color:var(--muted); margin:0; font-size:.92rem;}
+
+  .viewer{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  .slide-frame{position:relative; width:100%; aspect-ratio:1568/916; background:var(--card);}
+  .slide-frame img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    opacity:0; transition:opacity .25s ease; display:block;
+  }
+  .slide-frame img.active{opacity:1;}
+
+  .controls{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 18px; border-top:1px solid var(--border);
+  }
+  button.nav{
+    display:flex; align-items:center; gap:7px;
+    background:var(--accent-soft); color:var(--accent); border:none;
+    border-radius:9px; padding:9px 16px; font-size:.92rem; font-weight:600;
+    cursor:pointer; font-family:inherit;
+  }
+  button.nav:disabled{opacity:.35; cursor:default;}
+  button.nav:not(:disabled):hover{filter:brightness(0.95);}
+  button.nav:not(:disabled):active{transform:translateY(1px);}
+
+  .counter{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .dots{display:flex; gap:6px;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--border); cursor:pointer; border:none; padding:0;}
+  .dot.active{background:var(--accent); width:18px; border-radius:4px;}
+
+  @media (max-width:480px){
+    .controls{padding:12px 14px;}
+    button.nav span.label{display:none;}
+    button.nav{padding:10px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Tutorial — Assinatura FreshCan</h1>
+  <p class="sub">Fluxo real em freshcan.com.br/assinatura.html. Use os botões (ou as setas do teclado) para passar os slides no seu ritmo.</p>
+
+  <div class="viewer">
+    <div class="slide-frame" id="slideFrame">
+      <img src="images/tutorial-assinatura/frame1.png" data-i="0" class="active" alt="Slide 1">
+      <img src="images/tutorial-assinatura/frame2.png" data-i="1" alt="Slide 2">
+      <img src="images/tutorial-assinatura/frame3.png" data-i="2" alt="Slide 3">
+      <img src="images/tutorial-assinatura/frame4.png" data-i="3" alt="Slide 4">
+      <img src="images/tutorial-assinatura/frame5.png" data-i="4" alt="Slide 5">
+    </div>
+    <div class="controls">
+      <button class="nav" id="prevBtn" aria-label="Slide anterior">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Voltar</span>
+      </button>
+      <div class="counter">
+        <span id="counterText">1 / 5</span>
+        <div class="dots" id="dots"></div>
+      </div>
+      <button class="nav" id="nextBtn" aria-label="Próximo slide">
+        <span class="label">Avançar</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide-frame img'));
+  const total = slides.length;
+  let idx = 0;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counterText = document.getElementById('counterText');
+  const dotsWrap = document.getElementById('dots');
+
+  for (let i = 0; i < total; i++){
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Ir para o slide ' + (i + 1));
+    d.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(d);
+  }
+  const dots = Array.from(dotsWrap.children);
+
+  function render(){
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    counterText.textContent = (idx + 1) + ' / ' + total;
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total - 1;
+  }
+
+  function go(i){
+    idx = Math.max(0, Math.min(total - 1, i));
+    render();
+  }
+
+  prevBtn.addEventListener('click', () => go(idx - 1));
+  nextBtn.addEventListener('click', () => go(idx + 1));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') go(idx - 1);
+    if (e.key === 'ArrowRight') go(idx + 1);
+  });
+
+  render();
+</script>
+
+</body>
+</html>
