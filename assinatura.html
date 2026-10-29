@@ -15,7 +15,7 @@
      ANTES do script carregar (ele é async) — por isso vem definido aqui,
      antes da tag <script> que o chama. -->
 <script>
-  const TURNSTILE_SITE_KEY = ""; // preencher com a Site Key do Cloudflare Turnstile quando tiver uma
+  const TURNSTILE_SITE_KEY = "0x4AAAAAAFqeTtq-3cwKN0nV"; // widget "FreshCan Assinatura" no Cloudflare Turnstile
   window.onTurnstileLoad = function () {
     if (!TURNSTILE_SITE_KEY) return;
     window.turnstile?.render("#turnstile-widget", { sitekey: TURNSTILE_SITE_KEY });
@@ -726,7 +726,7 @@
       msg += `Empresa parceira: ${escola}\n`;
       msg += `Plano escolhido: ${plano}\n`;
       msg += `Forma de pagamento: ${pagamento}\n`;
-      msg += `Produtos liberados para a criança: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
+      msg += `Produtos liberados para o cliente: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
       if (cobranca?.boletoUrl) msg += `Boleto já gerado: ${cobranca.boletoUrl}\n`;
       if (cobranca?.faturaUrl && cobranca.metodo !== "Boleto") msg += `Link de pagamento: ${cobranca.faturaUrl}\n`;
 
