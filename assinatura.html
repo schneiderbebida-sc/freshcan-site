@@ -8,6 +8,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<!-- Cloudflare Turnstile — proteção anti-robô no formulário de assinatura (ver
+     #turnstile-widget mais abaixo). Render explícito (não automático), só
+     quando TURNSTILE_SITE_KEY estiver preenchida — until lá, fica vazio/
+     invisível, sem erro no console. window.onTurnstileLoad precisa existir
+     ANTES do script carregar (ele é async) — por isso vem definido aqui,
+     antes da tag <script> que o chama. -->
+<script>
+  const TURNSTILE_SITE_KEY = ""; // preencher com a Site Key do Cloudflare Turnstile quando tiver uma
+  window.onTurnstileLoad = function () {
+    if (!TURNSTILE_SITE_KEY) return;
+    window.turnstile?.render("#turnstile-widget", { sitekey: TURNSTILE_SITE_KEY });
+  };
+</script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onTurnstileLoad" async defer></script>
 </head>
 <body>
 
@@ -275,6 +289,20 @@
         <p class="plan-note" style="margin-top:4px; margin-bottom:18px; text-align:left;">
           Pedimos apenas os dados do responsável. O código de validação será enviado para este e-mail e usado para liberar a retirada do produto.
         </p>
+
+        <!-- Honeypot anti-robô: nunca visível nem alcançável por humano (fora da tela,
+             sem tabindex). Só um robô que preenche todo campo automaticamente cai aqui. -->
+        <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+          <label for="s-website">Deixe este campo em branco</label>
+          <input type="text" id="s-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <input type="hidden" id="s-loaded-at">
+
+        <!-- Cloudflare Turnstile (grátis) — widget leve de verificação anti-robô.
+             Renderizado via JS (TURNSTILE_SITE_KEY, logo abaixo) só quando a chave
+             existir — fica vazio/invisível enquanto ela não for configurada. -->
+        <div id="turnstile-widget" style="margin-bottom:14px;"></div>
+
         <button type="submit" id="subscription-submit" class="btn btn-coral btn-block">Confirmar assinatura</button>
         <p id="subscription-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
       </form>
@@ -447,6 +475,10 @@
     document.getElementById("wa-float").href = link;
     document.getElementById("cta-whatsapp").href = link;
 
+    // Anti-robô: marca o instante em que o formulário carregou (ver TEMPO_MINIMO_MS
+    // no backend) — bots que montam e enviam a requisição na hora não têm esse delay.
+    document.getElementById("s-loaded-at").value = Date.now();
+
     /* --- Seleção de plano (destaca o cartão escolhido + resume no formulário) --- */
     const planInputs = document.querySelectorAll('input[name="plan"]');
     const planSummary = document.getElementById("s-plan-summary");
@@ -600,6 +632,9 @@
           categoriasPermitidas,
           fotoBase64,
           descricao: `Assinatura escolar FreshCan — ${crianca} — ${escola}`,
+          honeypot: document.getElementById("s-website").value,
+          loadedAt: Number(document.getElementById("s-loaded-at").value || 0),
+          turnstileToken: document.querySelector('[name="cf-turnstile-response"]')?.value || "",
         }),
       });
       const data = await res.json();
