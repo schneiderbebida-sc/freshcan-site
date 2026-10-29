@@ -103,6 +103,11 @@
           </dl>
           <p id="balcao-produtos-titulo" style="font-size:13px; font-weight:600; margin-bottom:10px;">Qual o grupo do produto?</p>
           <div id="balcao-produtos" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
+          <div id="balcao-price-wrap" style="display:none; margin-bottom:16px;">
+            <label for="balcao-price-input" style="font-size:13px; font-weight:600; display:block; margin-bottom:6px;">Valor a cobrar (R$)</label>
+            <input type="number" id="balcao-price-input" step="0.01" min="0.01" style="width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:15px;">
+            <p id="balcao-price-hint" style="font-size:12px; color:var(--ink-soft); margin-top:6px;"></p>
+          </div>
           <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Confira se a criança na sua frente é a mesma da foto antes de confirmar.</p>
           <button id="balcao-confirm" class="btn btn-coral btn-block" disabled>Confirmar retirada</button>
           <p id="balcao-error" style="display:none; text-align:center; color:#b42318; font-weight:600; font-size:13.5px; margin-top:14px;"></p>
@@ -294,6 +299,22 @@
 <div id="photo-lightbox" class="photo-lightbox" hidden>
   <button type="button" id="photo-lightbox-close" class="photo-lightbox-close" aria-label="Fechar foto ampliada">✕</button>
   <img id="photo-lightbox-img" src="" alt="Foto do cliente ampliada">
+</div>
+
+<!-- Modal de confirmação da retirada — o atendente confere produto e valor antes de debitar o saldo -->
+<div id="balcao-confirm-modal" class="confirm-modal" hidden>
+  <div class="confirm-modal-card">
+    <h4>Confirmar retirada</h4>
+    <dl class="panel-fields" style="margin:16px 0;">
+      <div class="panel-field"><dt>Cliente</dt><dd id="confirm-modal-cliente">—</dd></div>
+      <div class="panel-field"><dt>Produto</dt><dd id="confirm-modal-produto">—</dd></div>
+      <div class="panel-field"><dt>Valor a debitar</dt><dd id="confirm-modal-valor">—</dd></div>
+    </dl>
+    <div style="display:flex; gap:10px;">
+      <button type="button" id="confirm-modal-cancel" class="btn btn-outline btn-block">Cancelar</button>
+      <button type="button" id="confirm-modal-ok" class="btn btn-coral btn-block">Confirmar</button>
+    </div>
+  </div>
 </div>
 
 <script src="js/products.js"></script>
@@ -1051,7 +1072,12 @@
     const balcaoConfirmed = document.getElementById("balcao-confirmed");
     const balcaoError = document.getElementById("balcao-error");
     const balcaoProdutosWrap = document.getElementById("balcao-produtos");
+    const balcaoPriceWrap = document.getElementById("balcao-price-wrap");
+    const balcaoPriceInput = document.getElementById("balcao-price-input");
+    const balcaoPriceHint = document.getElementById("balcao-price-hint");
     let produtoSelecionado = null;
+    let produtoSelecionadoNome = null;
+    let produtoSelecionadoPreco = null;
     let codigoBalcaoAtual = null;
 
     async function chamarBalcao(body) {
@@ -1072,7 +1098,10 @@
     // quando uma categoria como panquecas tem 8+ variações).
     function renderProdutosBalcao(produtos) {
       produtoSelecionado = null;
+      produtoSelecionadoNome = null;
+      produtoSelecionadoPreco = null;
       balcaoConfirmBtn.disabled = true;
+      balcaoPriceWrap.style.display = "none";
 
       const grupos = {};
       (produtos || []).forEach((produto) => {
@@ -1088,7 +1117,10 @@
 
       function mostrarGrupos() {
         produtoSelecionado = null;
+        produtoSelecionadoNome = null;
+        produtoSelecionadoPreco = null;
         balcaoConfirmBtn.disabled = true;
+        balcaoPriceWrap.style.display = "none";
         balcaoProdutosTitulo.textContent = "Qual o grupo do produto?";
         balcaoProdutosWrap.innerHTML = "";
         idsGrupos.forEach((catId) => {
@@ -1103,7 +1135,10 @@
 
       function mostrarItens(catId) {
         produtoSelecionado = null;
+        produtoSelecionadoNome = null;
+        produtoSelecionadoPreco = null;
         balcaoConfirmBtn.disabled = true;
+        balcaoPriceWrap.style.display = "none";
         balcaoProdutosTitulo.textContent = `${labelGrupo(catId)} — qual item?`;
         balcaoProdutosWrap.innerHTML = "";
 
@@ -1122,9 +1157,15 @@
           btn.textContent = `${produto.name} — R$${Number(produto.price).toFixed(2)}`;
           btn.addEventListener("click", () => {
             produtoSelecionado = produto.id;
+            produtoSelecionadoNome = produto.name;
+            produtoSelecionadoPreco = Number(produto.price);
             balcaoConfirmBtn.disabled = false;
             balcaoProdutosWrap.querySelectorAll("button").forEach((b) => { if (b !== voltar) b.classList.remove("btn-coral"); });
             btn.classList.add("btn-coral");
+            balcaoPriceInput.value = produtoSelecionadoPreco.toFixed(2);
+            balcaoPriceInput.max = produtoSelecionadoPreco.toFixed(2);
+            balcaoPriceHint.textContent = `Preço de catálogo: R$${produtoSelecionadoPreco.toFixed(2)} — ajuste pra baixo pra aplicar um desconto. Não é possível cobrar mais que isso.`;
+            balcaoPriceWrap.style.display = "block";
           });
           balcaoProdutosWrap.appendChild(btn);
         });
@@ -1172,25 +1213,76 @@
         balcaoResult.hidden = false;
         balcaoConfirmBtn.style.display = "none";
         balcaoProdutosWrap.innerHTML = "";
+        balcaoPriceWrap.style.display = "none";
         balcaoError.textContent = err.message;
         balcaoError.style.display = "block";
       }
     });
 
-    balcaoConfirmBtn.addEventListener("click", async () => {
+    // ---------- Modal de confirmação da retirada ----------
+    // Some de clicar em "Confirmar retirada" até, de fato, chamar a API — dá
+    // uma última chance do atendente conferir produto e valor (com desconto
+    // já aplicado) antes de debitar o saldo do cliente.
+    const balcaoConfirmModal = document.getElementById("balcao-confirm-modal");
+    const confirmModalCliente = document.getElementById("confirm-modal-cliente");
+    const confirmModalProduto = document.getElementById("confirm-modal-produto");
+    const confirmModalValor = document.getElementById("confirm-modal-valor");
+    const confirmModalOk = document.getElementById("confirm-modal-ok");
+    const confirmModalCancel = document.getElementById("confirm-modal-cancel");
+    let valorConfirmadoPendente = null;
+
+    function abrirConfirmModal(valor) {
+      valorConfirmadoPendente = valor;
+      confirmModalCliente.textContent = document.getElementById("balcao-child-name").textContent;
+      confirmModalProduto.textContent = produtoSelecionadoNome || "—";
+      confirmModalValor.textContent = `R$${valor.toFixed(2)}`;
+      balcaoConfirmModal.hidden = false;
+    }
+    function fecharConfirmModal() {
+      balcaoConfirmModal.hidden = true;
+      valorConfirmadoPendente = null;
+    }
+    confirmModalCancel.addEventListener("click", fecharConfirmModal);
+    balcaoConfirmModal.addEventListener("click", (e) => { if (e.target === balcaoConfirmModal) fecharConfirmModal(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !balcaoConfirmModal.hidden) fecharConfirmModal(); });
+
+    balcaoConfirmBtn.addEventListener("click", () => {
       if (!produtoSelecionado) {
         balcaoError.textContent = "Selecione um produto antes de confirmar a retirada.";
         balcaoError.style.display = "block";
         return;
       }
+      const valorDigitado = Number(balcaoPriceInput.value);
+      if (!Number.isFinite(valorDigitado) || valorDigitado <= 0) {
+        balcaoError.textContent = "Digite um valor válido a cobrar.";
+        balcaoError.style.display = "block";
+        return;
+      }
+      if (valorDigitado > produtoSelecionadoPreco + 0.001) {
+        balcaoError.textContent = `O valor não pode ser maior que o preço de catálogo (R$${produtoSelecionadoPreco.toFixed(2)}).`;
+        balcaoError.style.display = "block";
+        return;
+      }
       balcaoError.style.display = "none";
+      abrirConfirmModal(valorDigitado);
+    });
+
+    confirmModalOk.addEventListener("click", async () => {
+      const valor = valorConfirmadoPendente;
+      if (valor === null) return;
+      confirmModalOk.disabled = true;
       try {
-        await chamarBalcao({ codigo: codigoBalcaoAtual, productId: produtoSelecionado });
+        await chamarBalcao({ codigo: codigoBalcaoAtual, productId: produtoSelecionado, priceCharged: valor });
+        fecharConfirmModal();
         balcaoConfirmBtn.style.display = "none";
+        balcaoPriceWrap.style.display = "none";
         balcaoConfirmed.style.display = "block";
       } catch (err) {
+        fecharConfirmModal();
         balcaoError.textContent = err.message;
         balcaoError.style.display = "block";
+      } finally {
+        confirmModalOk.disabled = false;
       }
     });
   });
