@@ -311,6 +311,7 @@
         <div class="ico">✅</div>
         <h3>Recebemos seu interesse!</h3>
         <p>Abrimos o WhatsApp da FreshCan com seus dados preenchidos. Nosso time confirma a assinatura por lá.</p>
+        <p id="cobranca-falhou" style="display:none; margin-top:12px; padding:12px; background:#fdecea; color:#b42318; border-radius:10px; font-size:13px;"></p>
         <div id="codigo-gerado" style="display:none; margin-top:16px; padding:16px; background:var(--cream); border-radius:12px; text-align:center;">
           <p style="font-weight:600; margin-bottom:6px;">Seu código de retirada e de acesso ao painel:</p>
           <p id="codigo-gerado-valor" style="font-size:26px; font-weight:800; letter-spacing:4px;"></p>
@@ -707,11 +708,13 @@
       const categorias = categoriaIds.map((id) => window.PRODUCT_CATEGORIES.find((c) => c.id === id)?.label || id);
 
       let cobranca = null;
+      let erroCobranca = null;
       submitBtn.disabled = true;
       submitBtn.textContent = LABEL_GERANDO[pagamento] || "Enviando...";
       try {
         cobranca = await gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor: valorPlano, metodo: pagamento, categoriasPermitidas: categoriaIds, fotoBase64 });
       } catch (err) {
+        erroCobranca = err.message;
         errorMsg.textContent = `Não deu pra gerar a cobrança automaticamente agora (${err.message}). Vamos te enviar por WhatsApp assim que possível — segue o pedido pra nossa equipe.`;
         errorMsg.style.display = "block";
       }
@@ -733,6 +736,12 @@
       window.open(window.FreshCan.buildWhatsAppLink(msg), "_blank");
       form.style.display = "none";
       success.classList.add("is-visible");
+
+      if (erroCobranca) {
+        const aviso = document.getElementById("cobranca-falhou");
+        aviso.textContent = `A cobrança automática não pôde ser gerada agora (${erroCobranca}) — nosso time vai gerar manualmente e te avisa pelo WhatsApp.`;
+        aviso.style.display = "block";
+      }
 
       if (cobranca) mostrarResultadoPagamento(cobranca);
       if (cobranca?.codigo) {
