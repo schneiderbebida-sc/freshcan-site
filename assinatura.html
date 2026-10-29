@@ -730,6 +730,7 @@
       msg += `Plano escolhido: ${plano}\n`;
       msg += `Forma de pagamento: ${pagamento}\n`;
       msg += `Produtos liberados para o cliente: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
+      if (cobranca?.codigo) msg += `Código de retirada/acesso: ${cobranca.codigo}\n`;
       if (cobranca?.boletoUrl) msg += `Boleto já gerado: ${cobranca.boletoUrl}\n`;
       if (cobranca?.faturaUrl && cobranca.metodo !== "Boleto") msg += `Link de pagamento: ${cobranca.faturaUrl}\n`;
 
