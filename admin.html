@@ -101,6 +101,10 @@
           <dl class="panel-fields" style="margin-bottom:20px;">
             <div class="panel-field"><dt>Saldo restante</dt><dd id="balcao-saldo">—</dd></div>
           </dl>
+          <div id="balcao-historico-wrap" style="margin-bottom:20px;">
+            <p style="font-size:13px; font-weight:600; margin-bottom:8px;">Últimas retiradas</p>
+            <div id="balcao-historico" style="font-size:12.5px; color:var(--ink-soft);"></div>
+          </div>
           <p id="balcao-produtos-titulo" style="font-size:13px; font-weight:600; margin-bottom:10px;">Qual o grupo do produto?</p>
           <div id="balcao-produtos" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;"></div>
           <div id="balcao-price-wrap" style="display:none; margin-bottom:16px;">
@@ -1092,6 +1096,27 @@
     }
 
     const balcaoProdutosTitulo = document.getElementById("balcao-produtos-titulo");
+    const balcaoHistoricoWrap = document.getElementById("balcao-historico-wrap");
+    const balcaoHistorico = document.getElementById("balcao-historico");
+
+    // Log de consumo — mostra as últimas retiradas do cliente na hora da
+    // consulta, pro atendente saber o que já foi usado antes de liberar mais.
+    function renderHistoricoBalcao(historico) {
+      if (!historico || !historico.length) {
+        balcaoHistorico.innerHTML = `<p style="margin:0;">Nenhuma retirada registrada ainda.</p>`;
+        return;
+      }
+      balcaoHistorico.innerHTML = historico
+        .map((h) => {
+          const dataFmt = new Date(h.data).toLocaleString("pt-BR", {
+            day: "2-digit", month: "2-digit", year: "2-digit", hour: "2-digit", minute: "2-digit",
+          });
+          return `<div style="display:flex; justify-content:space-between; gap:12px; padding:6px 0; border-bottom:1px solid var(--line);">
+            <span>${dataFmt} — ${h.produto}</span><strong style="white-space:nowrap;">R$${h.valor.toFixed(2)}</strong>
+          </div>`;
+        })
+        .join("");
+    }
 
     // Agrupa por categoria primeiro (grupo) e só mostra os itens do grupo
     // escolhido — evita listar todos os produtos de uma vez (tela poluída
@@ -1205,6 +1230,8 @@
           ? () => abrirFotoLightbox(data.assinante.photoUrl)
           : null;
         renderProdutosBalcao(data.produtos);
+        renderHistoricoBalcao(data.historico);
+        balcaoHistoricoWrap.style.display = "block";
         balcaoEmpty.hidden = true;
         balcaoResult.hidden = false;
         balcaoConfirmBtn.style.display = "block";
@@ -1214,6 +1241,7 @@
         balcaoConfirmBtn.style.display = "none";
         balcaoProdutosWrap.innerHTML = "";
         balcaoPriceWrap.style.display = "none";
+        balcaoHistoricoWrap.style.display = "none";
         balcaoError.textContent = err.message;
         balcaoError.style.display = "block";
       }
@@ -1267,6 +1295,24 @@
       abrirConfirmModal(valorDigitado);
     });
 
+    // Fecha a tela do balcão de volta pro estado inicial — depois de confirmar
+    // uma retirada é mais seguro não deixar dado de cliente parado na tela
+    // (risco de clique duplicado ou de o próximo atendimento ver o anterior).
+    function resetBalcao() {
+      document.getElementById("balcao-code-input").value = "";
+      codigoBalcaoAtual = null;
+      produtoSelecionado = null;
+      produtoSelecionadoNome = null;
+      produtoSelecionadoPreco = null;
+      balcaoProdutosWrap.innerHTML = "";
+      balcaoHistorico.innerHTML = "";
+      balcaoPriceWrap.style.display = "none";
+      balcaoConfirmed.style.display = "none";
+      balcaoError.style.display = "none";
+      balcaoResult.hidden = true;
+      balcaoEmpty.hidden = false;
+    }
+
     confirmModalOk.addEventListener("click", async () => {
       const valor = valorConfirmadoPendente;
       if (valor === null) return;
@@ -1277,6 +1323,8 @@
         balcaoConfirmBtn.style.display = "none";
         balcaoPriceWrap.style.display = "none";
         balcaoConfirmed.style.display = "block";
+        // Mostra a confirmação por um instante antes de encerrar a tela.
+        setTimeout(resetBalcao, 2500);
       } catch (err) {
         fecharConfirmModal();
         balcaoError.textContent = err.message;
