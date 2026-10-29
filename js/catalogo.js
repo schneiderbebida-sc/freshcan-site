@@ -54,14 +54,6 @@ const CATALOGO = [
     ],
   },
   {
-    categoria: "Panquecas",
-    itens: [
-      { nome: "Panqueca Banana com Mel", imagem: "images/panqueca-banana-mel-tradicional.jfif", tamanhos: ["3 unidades"], ingredientes: ["Panqueca americana", "Banana", "Mel"] },
-      { nome: "Panqueca Frutas Vermelhas", imagem: "images/panqueca-morangos-tradicional.jfif", tamanhos: ["3 unidades"], ingredientes: ["Panqueca americana", "Geleia de frutas vermelhas", "Frutas vermelhas", "Açúcar de confeiteiro"] },
-      { nome: "Panqueca Iogurte Grego", imagem: "images/panqueca-mirtilos-tradicional.jfif", tamanhos: ["3 unidades"], ingredientes: ["Panqueca americana", "Iogurte grego", "Granola", "Mirtilo", "Chia"] },
-    ],
-  },
-  {
     categoria: "Iogurtes Gregos",
     itens: [
       { nome: "Greek Abacaxi Crunch", imagem: "images/iogurte-grego-abacaxi.jfif", tamanhos: ["250ml", "330ml"], ingredientes: ["Iogurte grego natural", "Abacaxi", "Granola"] },

@@ -62,7 +62,7 @@
       <h2>Tem um código? Confira aqui.</h2>
       <p>Digite o cupom para ver se ele está válido — depois é só levar para o carrinho.</p>
       <form class="coupon-field" id="coupon-form">
-        <input type="text" id="coupon-input" placeholder="EX: FRESH10" required>
+        <input type="text" id="coupon-input" placeholder="EX: VIVARUN26" required>
         <button type="submit" class="btn btn-primary">Aplicar</button>
       </form>
       <p class="coupon-feedback" id="coupon-feedback"></p>
@@ -74,34 +74,6 @@
     </div>
 
     <div class="coupon-list reveal">
-      <div class="coupon-card">
-        <div>
-          <div class="code">FRESH10</div>
-          <p>10% de desconto em pedidos acima de R$ 60.</p>
-        </div>
-        <button class="btn btn-outline btn-sm copy-btn" data-code="FRESH10">Copiar</button>
-      </div>
-      <div class="coupon-card">
-        <div>
-          <div class="code">PRIMEIRACOMPRA</div>
-          <p>15% de desconto na sua primeira compra FreshCan.</p>
-        </div>
-        <button class="btn btn-outline btn-sm copy-btn" data-code="PRIMEIRACOMPRA">Copiar</button>
-      </div>
-      <div class="coupon-card">
-        <div>
-          <div class="code">VERAO2026</div>
-          <p>Drinks com 20% off nas compras de sexta a domingo.</p>
-        </div>
-        <button class="btn btn-outline btn-sm copy-btn" data-code="VERAO2026">Copiar</button>
-      </div>
-      <div class="coupon-card">
-        <div>
-          <div class="code">FRETEGRATIS</div>
-          <p>Retirada sem custo no quiosque — sempre válido.</p>
-        </div>
-        <button class="btn btn-outline btn-sm copy-btn" data-code="FRETEGRATIS">Copiar</button>
-      </div>
       <div class="coupon-card">
         <div>
           <div class="code">VIVARUN26</div>
@@ -189,10 +161,6 @@
 
   // validFrom/validUntil no formato "AAAA-MM-DD" (inclusive). Use null quando não houver restrição.
   const COUPONS = {
-    FRESH10: { validFrom: null, validUntil: null },
-    PRIMEIRACOMPRA: { validFrom: null, validUntil: null },
-    VERAO2026: { validFrom: null, validUntil: null },
-    FRETEGRATIS: { validFrom: null, validUntil: null },
     VIVARUN26: { validFrom: null, validUntil: "2026-11-13" },
   };
 
