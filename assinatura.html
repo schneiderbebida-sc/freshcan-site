@@ -226,84 +226,113 @@
     </div>
 
     <div class="form-shell reveal" style="max-width:600px; margin-left:auto; margin-right:auto;">
+      <div class="wizard-progress">
+        <span class="wizard-progress-label" id="wizard-step-label">Etapa 1 de 4</span>
+        <div class="wizard-progress-bar"><div class="wizard-progress-fill" id="wizard-progress-fill"></div></div>
+      </div>
       <form id="subscription-form">
-        <div class="form-grid">
-          <div class="form-field full">
-            <label for="s-name">Nome do responsável</label>
-            <input type="text" id="s-name" required>
+        <div class="form-step is-active" data-step="1">
+          <div class="step-balloon">💬 Vamos começar com os dados de quem contrata a assinatura e recebe o código de retirada por e-mail.</div>
+          <div class="form-grid">
+            <div class="form-field full">
+              <label for="s-name">Nome do responsável</label>
+              <input type="text" id="s-name" required>
+            </div>
+            <div class="form-field full">
+              <label for="s-phone">WhatsApp do responsável</label>
+              <input type="tel" id="s-phone" placeholder="(47) 9xxxx-xxxx" required>
+            </div>
+            <div class="form-field full">
+              <label for="s-cpf">CPF do responsável</label>
+              <input type="text" id="s-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required>
+              <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Exigido pela Asaas para emitir o boleto da assinatura.</p>
+            </div>
+            <div class="form-field full">
+              <label for="s-email">E-mail do responsável</label>
+              <input type="email" id="s-email" placeholder="voce@email.com" required>
+              <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Enviamos o código de retirada/acesso ao painel por e-mail além de mostrar aqui na tela.</p>
+            </div>
           </div>
-          <div class="form-field full">
-            <label for="s-phone">WhatsApp do responsável</label>
-            <input type="tel" id="s-phone" placeholder="(47) 9xxxx-xxxx" required>
-          </div>
-          <div class="form-field full">
-            <label for="s-cpf">CPF do responsável</label>
-            <input type="text" id="s-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required>
-            <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Exigido pela Asaas para emitir o boleto da assinatura.</p>
-          </div>
-          <div class="form-field full">
-            <label for="s-email">E-mail do responsável</label>
-            <input type="email" id="s-email" placeholder="voce@email.com" required>
-            <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Enviamos o código de retirada/acesso ao painel por e-mail além de mostrar aqui na tela.</p>
-          </div>
-          <div class="form-field full">
-            <label for="s-child">Nome do cliente</label>
-            <input type="text" id="s-child" required>
-          </div>
-          <div class="form-field full">
-            <label for="s-school">Empresa parceira</label>
-            <select id="s-school" required>
-              <option value="">Carregando empresas parceiras...</option>
-            </select>
-          </div>
-          <div class="form-field full">
-            <label for="s-photo">Foto da criança</label>
-            <div class="photo-upload">
-              <div class="photo-preview" id="s-photo-preview">🧒</div>
-              <div class="file-drop" id="s-photo-drop" style="flex:1;">
-                <input type="file" id="s-photo" accept="image/*" required>
-                <span id="s-photo-label">Clique para escolher uma foto do rosto da criança</span>
+        </div>
+
+        <div class="form-step" data-step="2">
+          <div class="step-balloon">💬 Agora os dados de quem vai retirar o produto na loja.</div>
+          <div class="form-grid">
+            <div class="form-field full">
+              <label for="s-child">Nome do cliente</label>
+              <input type="text" id="s-child" required>
+            </div>
+            <div class="form-field full">
+              <label for="s-school">Empresa parceira</label>
+              <select id="s-school" required>
+                <option value="">Carregando empresas parceiras...</option>
+              </select>
+            </div>
+            <div class="form-field full">
+              <label for="s-photo">Foto da criança</label>
+              <div class="photo-upload">
+                <div class="photo-preview" id="s-photo-preview">🧒</div>
+                <div class="file-drop" id="s-photo-drop" style="flex:1;">
+                  <input type="file" id="s-photo" accept="image/*" required>
+                  <span id="s-photo-label">Clique para escolher uma foto do rosto da criança</span>
+                </div>
               </div>
+              <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Obrigatória: usada pelo funcionário da loja para confirmar que é a criança certa na hora da retirada — evita que outra pessoa use o código.</p>
             </div>
-            <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Obrigatória: usada pelo funcionário da loja para confirmar que é a criança certa na hora da retirada — evita que outra pessoa use o código.</p>
-          </div>
-          <div class="form-field full">
-            <label>Plano selecionado</label>
-            <p id="s-plan-summary" style="font-size:14px; color:var(--ink-soft);">Nenhum plano selecionado ainda — <a href="#" id="s-plan-scroll" style="color:var(--ink); text-decoration:underline;">escolha um plano acima</a>.</p>
-          </div>
-          <div class="form-field full">
-            <label>Forma de pagamento</label>
-            <div class="method-grid">
-              <label class="method-card"><input type="radio" name="payment" value="Boleto" required><span class="ico">🧾</span>Boleto</label>
-              <label class="method-card"><input type="radio" name="payment" value="Cartão de crédito"><span class="ico">💳</span>Cartão de crédito</label>
-              <label class="method-card"><input type="radio" name="payment" value="Pix"><span class="ico">⚡</span>Pix</label>
-            </div>
-            <p style="font-size:12px; color:var(--ink-soft); margin-top:8px;"></p>
-          </div>
-          <div class="form-field full">
-            <label>Categoria de produtos disponível para retirar</label>
-            <p style="font-size:12.5px; color:var(--ink-soft); margin-top:-2px;">Marque as categorias liberadas. Bebidas alcoólicas não entram nesta lista.</p>
-            <div class="product-check-grid" id="s-products"></div>
           </div>
         </div>
-        <p class="plan-note" style="margin-top:4px; margin-bottom:18px; text-align:left;">
-          Pedimos apenas os dados do responsável. O código de validação será enviado para este e-mail e usado para liberar a retirada do produto.
-        </p>
 
-        <!-- Honeypot anti-robô: nunca visível nem alcançável por humano (fora da tela,
-             sem tabindex). Só um robô que preenche todo campo automaticamente cai aqui. -->
-        <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
-          <label for="s-website">Deixe este campo em branco</label>
-          <input type="text" id="s-website" name="website" tabindex="-1" autocomplete="off">
+        <div class="form-step" data-step="3">
+          <div class="step-balloon">💬 Confirme o plano escolhido acima e como você prefere pagar todo mês.</div>
+          <div class="form-grid">
+            <div class="form-field full">
+              <label>Plano selecionado</label>
+              <p id="s-plan-summary" style="font-size:14px; color:var(--ink-soft);">Nenhum plano selecionado ainda — <a href="#" id="s-plan-scroll" style="color:var(--ink); text-decoration:underline;">escolha um plano acima</a>.</p>
+            </div>
+            <div class="form-field full">
+              <label>Forma de pagamento</label>
+              <div class="method-grid">
+                <label class="method-card"><input type="radio" name="payment" value="Boleto" required><span class="ico">🧾</span>Boleto</label>
+                <label class="method-card"><input type="radio" name="payment" value="Cartão de crédito"><span class="ico">💳</span>Cartão de crédito</label>
+                <label class="method-card"><input type="radio" name="payment" value="Pix"><span class="ico">⚡</span>Pix</label>
+              </div>
+              <p style="font-size:12px; color:var(--ink-soft); margin-top:8px;"></p>
+            </div>
+          </div>
         </div>
-        <input type="hidden" id="s-loaded-at">
 
-        <!-- Cloudflare Turnstile (grátis) — widget leve de verificação anti-robô.
-             Renderizado via JS (TURNSTILE_SITE_KEY, logo abaixo) só quando a chave
-             existir — fica vazio/invisível enquanto ela não for configurada. -->
-        <div id="turnstile-widget" style="margin-bottom:14px;"></div>
+        <div class="form-step" data-step="4">
+          <div class="step-balloon">💬 Por último, escolha quais categorias de produto ele(a) pode retirar. Bebidas alcoólicas nunca entram.</div>
+          <div class="form-grid">
+            <div class="form-field full">
+              <label>Categoria de produtos disponível para retirar</label>
+              <p style="font-size:12.5px; color:var(--ink-soft); margin-top:-2px;">Marque as categorias liberadas. Bebidas alcoólicas não entram nesta lista.</p>
+              <div class="product-check-grid" id="s-products"></div>
+            </div>
+          </div>
+          <p class="plan-note" style="margin-top:4px; margin-bottom:18px; text-align:left;">
+            Pedimos apenas os dados do responsável. O código de validação será enviado para este e-mail e usado para liberar a retirada do produto.
+          </p>
 
-        <button type="submit" id="subscription-submit" class="btn btn-coral btn-block">Confirmar assinatura</button>
+          <!-- Honeypot anti-robô: nunca visível nem alcançável por humano (fora da tela,
+               sem tabindex). Só um robô que preenche todo campo automaticamente cai aqui. -->
+          <div style="position:absolute; left:-9999px; top:-9999px;" aria-hidden="true">
+            <label for="s-website">Deixe este campo em branco</label>
+            <input type="text" id="s-website" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <input type="hidden" id="s-loaded-at">
+
+          <!-- Cloudflare Turnstile (grátis) — widget leve de verificação anti-robô.
+               Renderizado via JS (TURNSTILE_SITE_KEY, logo abaixo) só quando a chave
+               existir — fica vazio/invisível enquanto ela não for configurada. -->
+          <div id="turnstile-widget" style="margin-bottom:14px;"></div>
+        </div>
+
+        <div class="wizard-nav">
+          <button type="button" class="btn btn-outline" id="wizard-back" style="display:none;">← Voltar</button>
+          <button type="button" class="btn btn-coral" id="wizard-next">Continuar →</button>
+          <button type="submit" id="subscription-submit" class="btn btn-coral btn-block" style="display:none;">Confirmar assinatura</button>
+        </div>
         <p id="subscription-error" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
       </form>
 
@@ -531,6 +560,62 @@
         input.closest(".method-card").classList.add("is-selected");
       });
     });
+
+    /* --- Formulário em etapas: mostra um bloco de campos por vez, com um balão
+       explicando aquela etapa, pra quem está se cadastrando não passar correndo
+       sem entender o que cada campo significa. --- */
+    const wizardSteps = Array.from(document.querySelectorAll(".form-step"));
+    const wizardBack = document.getElementById("wizard-back");
+    const wizardNext = document.getElementById("wizard-next");
+    const wizardSubmitBtn = document.getElementById("subscription-submit");
+    const wizardStepLabel = document.getElementById("wizard-step-label");
+    const wizardProgressFill = document.getElementById("wizard-progress-fill");
+    let wizardStepIndex = 0;
+
+    function mostrarEtapa(index, { scroll = true } = {}) {
+      wizardStepIndex = index;
+      wizardSteps.forEach((step, i) => step.classList.toggle("is-active", i === index));
+      wizardStepLabel.textContent = `Etapa ${index + 1} de ${wizardSteps.length}`;
+      wizardProgressFill.style.width = `${((index + 1) / wizardSteps.length) * 100}%`;
+      const isUltimaEtapa = index === wizardSteps.length - 1;
+      wizardBack.style.display = index === 0 ? "none" : "block";
+      wizardNext.style.display = isUltimaEtapa ? "none" : "block";
+      wizardSubmitBtn.style.display = isUltimaEtapa ? "block" : "none";
+      if (scroll) wizardSteps[index].scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function etapaEhValida(index) {
+      const campos = wizardSteps[index].querySelectorAll("input, select, textarea");
+      for (const campo of campos) {
+        if (!campo.reportValidity()) return false;
+      }
+      if (index === 1 && !fotoBase64) {
+        document.getElementById("s-photo-label").textContent = "Escolha uma foto da criança antes de continuar.";
+        document.getElementById("s-photo-drop").scrollIntoView({ behavior: "smooth", block: "center" });
+        return false;
+      }
+      if (index === 2) {
+        const planoInput = document.querySelector('input[name="plan"]:checked');
+        if (!planoInput) {
+          document.querySelector(".pricing-grid").scrollIntoView({ behavior: "smooth", block: "center" });
+          document.getElementById("plan-required-hint").style.display = "block";
+          return false;
+        }
+        if (planoInput === planCustomRadio && Number(planoInput.dataset.valor || 0) < 5) {
+          planCustomError.style.display = "block";
+          planCustomValor.focus();
+          return false;
+        }
+      }
+      return true;
+    }
+
+    wizardNext.addEventListener("click", () => {
+      if (!etapaEhValida(wizardStepIndex)) return;
+      mostrarEtapa(Math.min(wizardStepIndex + 1, wizardSteps.length - 1));
+    });
+    wizardBack.addEventListener("click", () => mostrarEtapa(Math.max(wizardStepIndex - 1, 0)));
+    mostrarEtapa(0, { scroll: false });
 
     /* --- Upload + preview da foto da criança --- */
     // Redimensiona no navegador (lado maior ~600px, JPEG) antes de enviar: fica
