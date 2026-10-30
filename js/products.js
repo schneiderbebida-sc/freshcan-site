@@ -26,10 +26,9 @@ const PRODUCT_CATEGORIES = [
   { id: "vinho",       label: "Vinho",             icon: "" },
   { id: "sodas",       label: "Sodas Italianas",   icon: "" },
   { id: "isotonicos",  label: "Isotônicos",        icon: "" },
-  { id: "Whey",      label: "Whey protein",        icon: "" },
+  { id: "WHEY",      label: "Whey protein",        icon: "" },
   { id: "agua-coco",   label: "Água de Coco",      icon: "" },
   { id: "suco",        label: "Suco",              icon: "" },
-  { id: "panquecas",   label: "Panquecas",         icon: "" },
   { id: "iogurtes",    label: "Iogurtes",          icon: "" },
   { id: "sobremesas",  label: "Sobremesas",        icon: "" },
   { id: "castanhas",   label: "Castanhas",         icon: "" },
@@ -146,7 +145,7 @@ const PRODUCTS = [
   {
     id: "Whey-vanilla",
     name: "Whey Proteico de Vanilla",
-    category: "Whey",
+    category: "WHEY",
     price: 30.00,
     desc: "Shake proteico cremoso sabor vanilla — 500ml.",
     image: "images/shake-vanilla.jfif",
@@ -154,7 +153,7 @@ const PRODUCTS = [
   {
     id: "Whey-pacoca",
     name: "Whey Proteico de Paçoca",
-    category: "Whey",
+    category: "WHEY",
     price: 30.00,
     desc: "Shake proteico com sabor de paçoca — 500ml.",
     image: "images/shake-pacoca.jfif",
@@ -162,7 +161,7 @@ const PRODUCTS = [
   {
     id: "whey-banana-baunilha",
     name: "Whey Protein Banana e Baunilha",
-    category: "Whey",
+    category: "WHEY",
     price: 30.00,
     desc: "Whey protein batido com banana e baunilha — 500ml.",
     image: "images/0ADAE598-4243-4602-ABF9-BF4EE21D35E9.PNG",
@@ -170,7 +169,7 @@ const PRODUCTS = [
   {
     id: "Whey-banana-cacau",
     name: "Whey de Banana Cacau Fit",
-    category: "Whey",
+    category: "WHEY",
     price: 30.00,
     desc: "Whey fit de banana com cacau — 250ml.",
     image: "images/shake-banana-cacau.jfif",
@@ -178,7 +177,7 @@ const PRODUCTS = [
   {
     id: "mocca-vanilla-frape",
     name: "Mocca Vanilla Frapê",
-    category: "shakes",
+    category: "WHEY",
     price: 24.90,
     desc: "Frapê gelado de café com baunilha — 250ml.",
     image: "images/mocca-vanilla-frape.jfif",
@@ -218,56 +217,6 @@ const PRODUCTS = [
     price: 30.00,
     desc: "Suco natural de açaí com água de coco e guaraná — 500ml.",
     image: "images/suco-acai-abacaxi-xaropedeguarana.jpeg",
-  },
-
-  /* ---------------- Panquecas ---------------- */
-  {
-    id: "panqueca-banana-mel-tradicional",
-    name: "Panqueca Banana e Mel - Tradicional",
-    category: "panquecas",
-    price: 26.00,
-    desc: "Panquecas com banana e mel — 3 unidades.",
-    image: "images/panqueca-banana-mel-tradicional.jfif",
-  },
-  {
-    id: "panqueca-banana-mel-fit",
-    name: "Panqueca Banana e Mel - Fit",
-    category: "panquecas",
-    price: 28.00,
-    desc: "Versão fit das panquecas de banana e mel — 3 unidades.",
-    image: "images/panqueca-banana-mel-fit.jfif",
-  },
-  {
-    id: "panqueca-morangos-tradicional",
-    name: "Panqueca Morangos - Tradicional",
-    category: "panquecas",
-    price: 36.00,
-    desc: "Panquecas cobertas com morangos — 3 unidades.",
-    image: "images/panqueca-morangos-tradicional.jfif",
-  },
-  {
-    id: "panqueca-morangos-fit",
-    name: "Panqueca Morangos - Fit",
-    category: "panquecas",
-    price: 38.00,
-    desc: "Versão fit das panquecas de morangos — 3 unidades.",
-    image: "images/panqueca-morangos-fit.jfif",
-  },
-  {
-    id: "panqueca-mirtilos-tradicional",
-    name: "Panqueca Yogurte e Mirtilos - Tradicional",
-    category: "panquecas",
-    price: 40.00,
-    desc: "Panquecas com yogurte e mirtilos — 3 unidades.",
-    image: "images/panqueca-mirtilos-tradicional.jfif",
-  },
-  {
-    id: "panqueca-mirtilos-fit",
-    name: "Panqueca Yogurte e Mirtilos - Fit",
-    category: "panquecas",
-    price: 42.00,
-    desc: "Versão fit das panquecas de yogurte e mirtilos — 3 unidades.",
-    image: "images/panqueca-mirtilos-fit.jfif",
   },
 
   /* ---------------- Iogurtes ---------------- */
