@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catálogo FreshCan — Drinks</title>
+<meta name="description" content="Catálogo FreshCan Drinks para bares, baladas, eventos e restaurantes: spritz e caipirinhas prontos, mais opções sem álcool para drink menu — com foto e composição.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/catalogo.css">
+</head>
+<body>
+
+<section class="cat-cover">
+  <video class="cat-cover-video" src="video/freshcan-drinks.mp4" autoplay muted loop playsinline></video>
+  <div class="cat-cover-overlay" style="background: linear-gradient(180deg, rgba(18,33,29,.6) 0%, rgba(18,33,29,.45) 45%, rgba(18,33,29,.88) 100%);"></div>
+  <svg class="cat-cover-mark" viewBox="0 0 120 120" role="img" aria-label="Fresh Can">
+    <circle cx="60" cy="60" r="60" fill="#EA7913"/>
+    <text x="60" y="57" text-anchor="middle" font-family="Sora, sans-serif" font-weight="800" font-size="32" fill="#fff">fresh</text>
+    <text x="60" y="91" text-anchor="middle" font-family="Sora, sans-serif" font-weight="800" font-size="32" fill="#fff">can</text>
+  </svg>
+  <span class="eyebrow">Catálogo para bares, baladas, eventos e restaurantes</span>
+  <h1>FreshCan Drinks</h1>
+  <p>Spritz e caipirinhas prontos pra servir, em pote individual — mais opções sem álcool pra completar o drink menu.</p>
+</section>
+
+<main data-catalogo-root></main>
+
+<footer class="cat-footer">
+  <p>© <span id="cat-ano"></span> FreshCan</p>
+</footer>
+
+<script src="js/catalogo-data.js"></script>
+<script src="js/catalogo-drinks.js"></script>
+</body>
+</html>

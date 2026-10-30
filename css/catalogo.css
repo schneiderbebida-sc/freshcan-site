@@ -45,6 +45,8 @@ p { margin: 0; }
 /* Capa                                                                   */
 /* --------------------------------------------------------------------- */
 .cat-cover {
+  position: relative;
+  overflow: hidden;
   min-height: 72svh;
   display: flex;
   flex-direction: column;
@@ -56,6 +58,25 @@ p { margin: 0; }
   background-position: center;
   color: #fff;
   padding: 80px 24px;
+}
+/* Fundo em vídeo (ex: catalogo-drinks.html) — mesma moldura do fundo em foto,
+   só que com <video> absoluto atrás do overlay em vez de background-image. */
+.cat-cover-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+.cat-cover-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+.cat-cover > :not(.cat-cover-video):not(.cat-cover-overlay) {
+  position: relative;
+  z-index: 2;
 }
 .cat-cover-mark {
   width: 76px; height: 76px;
