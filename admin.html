@@ -332,7 +332,7 @@
           <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">
             <button type="button" class="btn btn-coral" id="relatorio-buscar">Buscar</button>
             <button type="button" class="btn btn-outline" id="relatorio-exportar-csv">Exportar CSV</button>
-            <button type="button" class="btn btn-outline" id="relatorio-exportar-excel" disabled title="Em breve — aguardando aprovação de biblioteca">Exportar Excel</button>
+            <button type="button" class="btn btn-outline" id="relatorio-exportar-excel">Exportar Excel</button>
           </div>
           <p id="relatorio-erro" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
         </div>
@@ -1244,6 +1244,35 @@
         const a = document.createElement("a");
         a.href = url;
         a.download = "relatorio-financeiro-freshcan.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.style.display = "block";
+      }
+    });
+
+    // Exportação em Excel: mesmo padrão do CSV acima (fetch com Authorization,
+    // baixa como blob e simula clique num link temporário) — só muda o
+    // "format" na query e a extensão do arquivo baixado.
+    document.getElementById("relatorio-exportar-excel").addEventListener("click", async () => {
+      const erroEl = document.getElementById("relatorio-erro");
+      erroEl.style.display = "none";
+      try {
+        const params = montarFiltrosRelatorio();
+        params.set("format", "xlsx");
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/report?${params.toString()}`, { headers: apiHeaders() });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Não foi possível exportar o Excel.");
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "relatorio-financeiro-freshcan.xlsx";
         document.body.appendChild(a);
         a.click();
         a.remove();
