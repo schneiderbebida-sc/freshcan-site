@@ -245,13 +245,16 @@
     document.getElementById("wa-float").href = link;
     document.getElementById("cta-whatsapp").href = link;
 
+    // "EXCLUDED_CATEGORIES" fica como estava — hoje é redundante (o backend já
+    // só manda categorias com enabled=true em program_categories, e drinks/vinho
+    // estão enabled=false), mas inofensivo mantê-lo como segunda trava.
     const EXCLUDED_CATEGORIES = ["drinks", "vinho"];
     const productsWrap = document.getElementById("p-products");
+    let categoriasDisponiveis = [];
 
     function renderProducts(allowedCategories) {
       productsWrap.innerHTML = "";
-      if (!window.PRODUCT_CATEGORIES) return;
-      window.PRODUCT_CATEGORIES
+      categoriasDisponiveis
         .filter((cat) => !EXCLUDED_CATEGORIES.includes(cat.id))
         .forEach((cat) => {
           const label = document.createElement("label");
@@ -265,6 +268,7 @@
     const STATUS_LABEL = { active: "Ativa", pending: "Aguardando confirmação", inactive: "Inativa" };
 
     function renderPainel(data) {
+      categoriasDisponiveis = data.categoriasDisponiveis || [];
       const a = data.assinante;
       document.getElementById("p-child-name").textContent = a.childName || "—";
       document.getElementById("p-guardian-name").textContent = `Responsável: ${a.guardianName || "—"}`;
@@ -285,7 +289,7 @@
       } else {
         resumoBody.innerHTML = data.resumoConsumo
           .map((r) => {
-            const cat = window.PRODUCT_CATEGORIES?.find((c) => c.id === r.categoriaId);
+            const cat = categoriasDisponiveis.find((c) => c.id === r.categoriaId);
             return `<tr><td>${r.codigoProduto}</td><td>${cat?.label || r.categoriaId}</td><td>${r.produto}</td><td>${r.quantidade}</td><td>R$${r.valorUnitario.toFixed(2)}</td><td>R$${r.valorTotal.toFixed(2)}</td></tr>`;
           })
           .join("");
