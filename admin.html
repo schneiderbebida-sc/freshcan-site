@@ -41,6 +41,7 @@
   <button type="button" class="admin-section-link" data-target="produtos" data-roles="admin">Produtos e preços</button>
   <button type="button" class="admin-section-link" data-target="cardapio-categorias" data-roles="admin">Categorias do cardápio</button>
   <button type="button" class="admin-section-link" data-target="cardapio-produtos" data-roles="admin">Produtos do cardápio</button>
+  <button type="button" class="admin-section-link" data-target="relatorio" data-roles="admin">Relatório financeiro</button>
 </nav>
 
 <section class="page-hero">
@@ -293,6 +294,74 @@
         </div>
       </div>
 
+      <!-- Relatório financeiro (conciliação) — admin -->
+      <div class="internal-section reveal" data-roles="admin" data-section="relatorio">
+        <div class="internal-section-head">
+          <div>
+            <h3>Relatório financeiro (conciliação)</h3>
+            <p>Uma linha por produto retirado no balcão. Valores sempre vêm do que foi cobrado na hora da retirada — nunca do preço de catálogo atual.</p>
+          </div>
+        </div>
+        <div class="form-shell" style="padding:24px; margin-top:0;">
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="relatorio-de">De</label>
+              <input type="date" id="relatorio-de">
+            </div>
+            <div class="form-field">
+              <label for="relatorio-ate">Até</label>
+              <input type="date" id="relatorio-ate">
+            </div>
+            <div class="form-field">
+              <label for="relatorio-cliente">Cliente</label>
+              <input type="text" id="relatorio-cliente" placeholder="Nome do responsável">
+            </div>
+            <div class="form-field">
+              <label for="relatorio-cpf">CPF</label>
+              <input type="text" id="relatorio-cpf" placeholder="Com ou sem pontuação">
+            </div>
+            <div class="form-field">
+              <label for="relatorio-codigo">Código do cliente</label>
+              <input type="text" id="relatorio-codigo" placeholder="Ex: 7K3M9P">
+            </div>
+            <div class="form-field">
+              <label for="relatorio-produto">Produto</label>
+              <select id="relatorio-produto"><option value="">Todos os produtos</option></select>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:6px;">
+            <button type="button" class="btn btn-coral" id="relatorio-buscar">Buscar</button>
+            <button type="button" class="btn btn-outline" id="relatorio-exportar-csv">Exportar CSV</button>
+            <button type="button" class="btn btn-outline" id="relatorio-exportar-excel" disabled title="Em breve — aguardando aprovação de biblioteca">Exportar Excel</button>
+          </div>
+          <p id="relatorio-erro" style="display:none; color:#b42318; font-size:13px; margin-top:10px;"></p>
+        </div>
+        <div style="overflow-x:auto; margin-top:20px;">
+          <table id="relatorio-tabela" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead>
+              <tr style="text-align:left; border-bottom:2px solid var(--line);">
+                <th style="padding:8px;">Data</th>
+                <th style="padding:8px;">Cliente</th>
+                <th style="padding:8px;">CPF</th>
+                <th style="padding:8px;">Código</th>
+                <th style="padding:8px;">Produto</th>
+                <th style="padding:8px; text-align:right;">Qtd.</th>
+                <th style="padding:8px; text-align:right;">Val. unitário</th>
+                <th style="padding:8px; text-align:right;">Desc. %</th>
+                <th style="padding:8px; text-align:right;">Val. desconto</th>
+                <th style="padding:8px; text-align:right;">Val. bruto</th>
+                <th style="padding:8px; text-align:right;">Val. total</th>
+                <th style="padding:8px;">Operação</th>
+              </tr>
+            </thead>
+            <tbody id="relatorio-tabela-body">
+              <tr><td colspan="12" style="padding:12px; color:var(--ink-soft);">Use os filtros acima e clique em "Buscar".</td></tr>
+            </tbody>
+          </table>
+          <p id="relatorio-resumo" style="font-size:13px; color:var(--ink-soft); margin-top:10px;"></p>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -406,7 +475,7 @@
       const roleTag = document.getElementById("role-tag");
       roleTag.textContent = role === "admin" ? "Administrador" : "Atendente de loja";
       roleTag.style.display = "inline-block";
-      // Admin tem 8 seções, atendente agora tem 2 (Balcão + Clientes) — ambos
+      // Admin tem 9 seções, atendente agora tem 2 (Balcão + Clientes) — ambos
       // precisam do menu hambúrguer pra trocar de seção.
       adminMenuToggle.style.display = "flex";
       const clientesSubtitle = document.getElementById("clientes-subtitle");
@@ -428,6 +497,7 @@
           carregarEscolas(),
           carregarMenuCategorias(),
           carregarMenuProdutos(),
+          popularSelectProdutosRelatorio(),
         ]);
       } else if (currentRole === "atendente") {
         await carregarAssinantes();
@@ -565,7 +635,7 @@
     const ALCOHOL_CATEGORIES = ["drinks", "vinho"];
 
     async function carregarCategorias() {
-      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/categories`, { headers: apiHeaders() });
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=categories`, { headers: apiHeaders() });
       const data = await res.json();
       if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
       if (!data.ok) throw new Error(data.error);
@@ -593,7 +663,7 @@
             ${excluivel ? `<button type="button" class="btn-excluir" title="Excluir categoria">🗑️</button>` : ""}
           </div>`;
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
-          await fetch(`${window.FreshCan.API_URL}/api/admin/categories`, {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=categories`, {
             method: "PATCH",
             headers: apiHeaders(),
             body: JSON.stringify({ categoryId: cat.id, enabled: e.target.checked }),
@@ -644,7 +714,7 @@
     async function carregarProdutos() {
       popularSelectCategorias(document.getElementById("novo-produto-categoria"));
 
-      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/products`, { headers: apiHeaders() });
+      const res = await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=products`, { headers: apiHeaders() });
       const data = await res.json();
       if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
       if (!data.ok) throw new Error(data.error);
@@ -672,7 +742,7 @@
             <button type="button" class="btn-excluir" title="Excluir produto">🗑️</button>
           </div>`;
         row.querySelector(".produto-preco").addEventListener("change", async (e) => {
-          await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=products`, {
             method: "PATCH",
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id, price: e.target.value }),
@@ -680,7 +750,7 @@
           carregarProdutos();
         });
         row.querySelector("input[type=checkbox]").addEventListener("change", async (e) => {
-          await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+          await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=products`, {
             method: "PATCH",
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id, active: e.target.checked }),
@@ -689,7 +759,7 @@
         });
         row.querySelector(".btn-excluir").addEventListener("click", async () => {
           if (!confirm(`Excluir o produto "${p.name}"? Essa ação não pode ser desfeita.`)) return;
-          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+          const res = await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=products`, {
             method: "DELETE",
             headers: apiHeaders(),
             body: JSON.stringify({ id: p.id }),
@@ -715,7 +785,7 @@
         return;
       }
       try {
-        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/products`, {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=products`, {
           method: "POST",
           headers: apiHeaders(),
           body: JSON.stringify({ id, categoryId, name, price }),
@@ -1053,6 +1123,131 @@
         document.getElementById("novo-menu-produto-desc").value = "";
         fotoInput.value = "";
         carregarMenuProdutos();
+      } catch (err) {
+        erroEl.textContent = err.message;
+        erroEl.style.display = "block";
+      }
+    });
+
+    // ---------- Relatório financeiro (conciliação) ----------
+    function formatarMoedaBr(valor) {
+      return Number(valor || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    function formatarDataHoraBr(iso) {
+      if (!iso) return "—";
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return String(iso);
+      return d.toLocaleString("pt-BR");
+    }
+
+    function montarFiltrosRelatorio() {
+      const params = new URLSearchParams();
+      const de = document.getElementById("relatorio-de").value;
+      const ate = document.getElementById("relatorio-ate").value;
+      const cliente = document.getElementById("relatorio-cliente").value.trim();
+      const cpfFiltro = document.getElementById("relatorio-cpf").value.trim();
+      const codigo = document.getElementById("relatorio-codigo").value.trim();
+      const produto = document.getElementById("relatorio-produto").value;
+      // "Até" cobre o dia inteiro (23:59:59) — sem isso a retirada das 14h do
+      // próprio dia final ficaria de fora de um filtro "de X até X".
+      if (de) params.set("from", `${de}T00:00:00`);
+      if (ate) params.set("to", `${ate}T23:59:59`);
+      if (cliente) params.set("guardianName", cliente);
+      if (cpfFiltro) params.set("cpf", cpfFiltro);
+      if (codigo) params.set("redemptionCode", codigo);
+      if (produto) params.set("productId", produto);
+      return params;
+    }
+
+    // Catálogo de produtos do balcão (mesmo usado em "Produtos e preços") só
+    // pra preencher o filtro — não confundir com window.PRODUCTS (cardápio público).
+    async function popularSelectProdutosRelatorio() {
+      const select = document.getElementById("relatorio-produto");
+      try {
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/catalog?kind=products`, { headers: apiHeaders() });
+        const data = await res.json();
+        if (!res.ok || !data.ok) return;
+        const atual = select.value;
+        select.innerHTML = `<option value="">Todos os produtos</option>` +
+          data.products.map((p) => `<option value="${p.id}">${p.name}</option>`).join("");
+        select.value = atual;
+      } catch { /* select fica só com "Todos os produtos" */ }
+    }
+
+    async function buscarRelatorio() {
+      const erroEl = document.getElementById("relatorio-erro");
+      erroEl.style.display = "none";
+      const corpo = document.getElementById("relatorio-tabela-body");
+      const resumo = document.getElementById("relatorio-resumo");
+      corpo.innerHTML = `<tr><td colspan="12" style="padding:12px; color:var(--ink-soft);">Buscando...</td></tr>`;
+      resumo.textContent = "";
+      try {
+        const params = montarFiltrosRelatorio();
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/report?${params.toString()}`, { headers: apiHeaders() });
+        const data = await res.json();
+        if (res.status === 401) throw new Error("Sessão expirada, faça login de novo.");
+        if (!data.ok) throw new Error(data.error || "Não foi possível carregar o relatório.");
+
+        corpo.innerHTML = "";
+        if (!data.linhas.length) {
+          corpo.innerHTML = `<tr><td colspan="12" style="padding:12px; color:var(--ink-soft);">Nenhuma retirada encontrada para esses filtros.</td></tr>`;
+          return;
+        }
+
+        let totalGeral = 0;
+        data.linhas.forEach((l) => {
+          totalGeral += Number(l.valorTotal || 0);
+          const tr = document.createElement("tr");
+          tr.style.borderBottom = "1px solid var(--line)";
+          tr.innerHTML = `
+            <td style="padding:8px;">${formatarDataHoraBr(l.data)}</td>
+            <td style="padding:8px;">${l.nomeCliente}</td>
+            <td style="padding:8px;">${formatarCpf(l.cpf)}</td>
+            <td style="padding:8px;">${l.codigoCliente}</td>
+            <td style="padding:8px;">${l.nomeProduto}</td>
+            <td style="padding:8px; text-align:right;">${l.quantidade}</td>
+            <td style="padding:8px; text-align:right;">${formatarMoedaBr(l.valorUnitario)}</td>
+            <td style="padding:8px; text-align:right;">${l.descontoPercentual}%</td>
+            <td style="padding:8px; text-align:right;">${formatarMoedaBr(l.valorDesconto)}</td>
+            <td style="padding:8px; text-align:right;">${formatarMoedaBr(l.valorBruto)}</td>
+            <td style="padding:8px; text-align:right; font-weight:600;">${formatarMoedaBr(l.valorTotal)}</td>
+            <td style="padding:8px; font-family:var(--font-mono); font-size:11.5px;">${l.operationId || "—"}</td>`;
+          corpo.appendChild(tr);
+        });
+        resumo.textContent = `${data.linhas.length} retirada${data.linhas.length === 1 ? "" : "s"} · Total: ${formatarMoedaBr(totalGeral)}`;
+      } catch (err) {
+        corpo.innerHTML = `<tr><td colspan="12" style="padding:12px; color:var(--ink-soft);">—</td></tr>`;
+        erroEl.textContent = err.message;
+        erroEl.style.display = "block";
+      }
+    }
+
+    document.getElementById("relatorio-buscar").addEventListener("click", buscarRelatorio);
+
+    // Exportação em CSV: precisa de fetch (não um link direto) porque a rota
+    // exige o header Authorization — baixa o corpo como blob e simula o clique
+    // num link temporário pra disparar o download do navegador.
+    document.getElementById("relatorio-exportar-csv").addEventListener("click", async () => {
+      const erroEl = document.getElementById("relatorio-erro");
+      erroEl.style.display = "none";
+      try {
+        const params = montarFiltrosRelatorio();
+        params.set("format", "csv");
+        const res = await fetch(`${window.FreshCan.API_URL}/api/admin/report?${params.toString()}`, { headers: apiHeaders() });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || "Não foi possível exportar o CSV.");
+        }
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "relatorio-financeiro-freshcan.csv";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
       } catch (err) {
         erroEl.textContent = err.message;
         erroEl.style.display = "block";
