@@ -47,7 +47,7 @@
 <section class="page-hero">
   <div class="container">
     <span class="eyebrow">Freshcan · Administração</span>
-    <h1>Painel da assinatura escolar.</h1>
+    <h1>Painel da assinatura.</h1>
     <p>Ative ou desative clientes, configure as regras de saldo e controle quais produtos entram no programa.</p>
   </div>
 </section>
@@ -92,7 +92,7 @@
         </div>
         <div id="balcao-result" class="lookup-result reveal" hidden>
           <div class="lookup-child">
-            <div class="avatar" id="balcao-avatar">🧒</div>
+            <div class="avatar" id="balcao-avatar">👤</div>
             <div>
               <h4 id="balcao-child-name">—</h4>
               <p id="balcao-meta">—</p>
@@ -116,7 +116,7 @@
               <strong id="balcao-carrinho-total" style="font-size:16px;">R$ 0,00</strong>
             </div>
           </div>
-          <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Confira se a criança na sua frente é a mesma da foto antes de confirmar.</p>
+          <p style="font-size:12.5px; color:var(--ink-soft); margin-bottom:16px;">Confira se é a mesma pessoa da foto antes de confirmar.</p>
           <button id="balcao-confirm" class="btn btn-coral btn-block" disabled>Confirmar retirada</button>
           <p id="balcao-error" style="display:none; text-align:center; color:#b42318; font-weight:600; font-size:13.5px; margin-top:14px;"></p>
           <p id="balcao-confirmed" style="display:none; text-align:center; color:#1a7a4c; font-weight:600; font-size:13.5px; margin-top:14px;">✅ Retirada registrada — saldo debitado.</p>
@@ -128,7 +128,7 @@
         <div class="internal-section-head">
           <div>
             <h3>Clientes</h3>
-            <p id="clientes-subtitle">Ative ou desative o acesso de cada responsável.</p>
+            <p id="clientes-subtitle">Ative ou desative o acesso de cada cliente.</p>
           </div>
         </div>
         <div id="admin-subscribers"></div>
@@ -160,12 +160,12 @@
         <div class="internal-section-head">
           <div>
             <h3>Categorias do catálogo</h3>
-            <p>Catálogo atual do site. Ative só o que entra na assinatura escolar.</p>
+            <p>Catálogo atual do site. Ative só o que entra na assinatura.</p>
           </div>
         </div>
         <div class="category-flag">
           <span>🚫</span>
-          <span><strong>Bebidas alcoólicas (Drinks &amp; Spritz, Vinho)</strong> ficam fora da lista por padrão e não devem ser ativadas para a assinatura escolar.</span>
+          <span><strong>Bebidas alcoólicas (Drinks &amp; Spritz, Vinho)</strong> ficam fora da lista por padrão e não devem ser ativadas para a assinatura.</span>
         </div>
         <div id="admin-categorias"></div>
       </div>
@@ -314,7 +314,7 @@
             </div>
             <div class="form-field">
               <label for="relatorio-cliente">Cliente</label>
-              <input type="text" id="relatorio-cliente" placeholder="Nome do responsável">
+              <input type="text" id="relatorio-cliente" placeholder="Nome do cliente">
             </div>
             <div class="form-field">
               <label for="relatorio-cpf">CPF</label>
@@ -481,7 +481,7 @@
       const clientesSubtitle = document.getElementById("clientes-subtitle");
       if (clientesSubtitle) {
         clientesSubtitle.textContent = role === "admin"
-          ? "Ative ou desative o acesso de cada responsável."
+          ? "Ative ou desative o acesso de cada cliente."
           : "Consulta de dados do cliente — ativar/desativar é restrito ao administrador.";
       }
     }
@@ -1526,7 +1526,7 @@
       }
 
       if (idsGrupos.length === 0) {
-        balcaoProdutosTitulo.textContent = "Qual produto a criança está retirando?";
+        balcaoProdutosTitulo.textContent = "Qual produto o cliente está retirando?";
         balcaoProdutosWrap.innerHTML = "";
       } else if (idsGrupos.length === 1) {
         // só um grupo disponível pra esse cliente — pula direto pros itens
@@ -1545,13 +1545,13 @@
         const data = await chamarBalcao({ codigo: code });
         codigoBalcaoAtual = code;
         document.getElementById("balcao-child-name").textContent = data.assinante.childName || "—";
-        document.getElementById("balcao-meta").textContent = `Responsável: ${data.assinante.guardianName || "—"} · ${data.assinante.school || "—"}`;
+        document.getElementById("balcao-meta").textContent = `Cliente: ${data.assinante.guardianName || "—"} · ${data.assinante.school || "—"}`;
         document.getElementById("balcao-saldo").textContent = `${formatarReal(data.saldo.restante)} de ${formatarReal(data.saldo.totalCiclo)}`;
         const balcaoAvatarEl = document.getElementById("balcao-avatar");
         const balcaoFotoDica = document.getElementById("balcao-foto-dica");
         balcaoAvatarEl.innerHTML = data.assinante.photoUrl
           ? `<img src="${data.assinante.photoUrl}" alt="Foto do cliente">`
-          : "🧒";
+          : "👤";
         balcaoAvatarEl.classList.toggle("has-photo", !!data.assinante.photoUrl);
         balcaoFotoDica.style.display = data.assinante.photoUrl ? "block" : "none";
         // onclick (em vez de addEventListener) pra não empilhar handlers a cada validação de código.

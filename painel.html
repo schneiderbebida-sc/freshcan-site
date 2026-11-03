@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel do Responsável — FreshCan</title>
-<meta name="description" content="Painel de controle da assinatura FreshCan: saldo de retiradas e histórico de consumo do responsável.">
+<title>Painel da Assinatura — FreshCan</title>
+<meta name="description" content="Painel de controle da assinatura FreshCan: saldo de retiradas e histórico de consumo.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
@@ -49,16 +49,16 @@
 
 <section class="page-hero">
   <div class="container">
-    <span class="eyebrow">Área do responsável</span>
+    <span class="eyebrow">Sua assinatura</span>
     <h1>Seu painel de assinatura.</h1>
-    <p>Acompanhe o saldo de retiradas e o que a sua criança já consumiu com a assinatura FreshCan.</p>
+    <p>Acompanhe o saldo de retiradas e o que você já consumiu com a assinatura FreshCan.</p>
   </div>
 </section>
 
 <section class="section" style="padding-top:60px;">
   <div class="container">
 
-    <!-- Portão de acesso — 2 passos: código, depois CPF do responsável pra confirmar
+    <!-- Portão de acesso — 2 passos: código, depois CPF de quem assinou pra confirmar
          que é a mesma pessoa antes de liberar o painel. -->
     <div id="painel-gate" class="gate-shell reveal">
       <div class="ico">🔑</div>
@@ -74,9 +74,9 @@
       </div>
 
       <div id="gate-step-cpf" hidden>
-        <p>Agora confirme o CPF do responsável usado no cadastro da assinatura.</p>
+        <p>Agora confirme o CPF usado no cadastro da assinatura.</p>
         <div class="form-field">
-          <label for="gate-cpf">CPF do responsável</label>
+          <label for="gate-cpf">Seu CPF</label>
           <input type="text" id="gate-cpf" inputmode="numeric" placeholder="000.000.000-00" maxlength="14">
         </div>
         <button id="gate-submit" class="btn btn-coral btn-block">Entrar</button>
@@ -91,10 +91,10 @@
       <div class="panel-card">
         <div class="panel-card-head">
           <div class="lookup-child" style="margin-bottom:0;">
-            <div class="avatar">🧒</div>
+            <div class="avatar">👤</div>
             <div>
               <h3 style="margin-bottom:2px;" id="p-child-name">—</h3>
-              <p id="p-guardian-name">Responsável: —</p>
+              <p id="p-guardian-name">Cliente: —</p>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@
             <dd id="p-payment">—</dd>
           </div>
           <div class="panel-field">
-            <dt>Escola</dt>
+            <dt>Parceiro</dt>
             <dd id="p-school">—</dd>
           </div>
         </dl>
@@ -121,8 +121,8 @@
       <div class="panel-card">
         <div class="panel-card-head">
           <div>
-            <h3>Produtos liberados para o(a) filho(a)</h3>
-            <p>Dentro do catálogo ativo pela FreshCan, você escolhe o que ele(a) pode retirar.</p>
+            <h3>Produtos liberados para retirada</h3>
+            <p>Dentro do catálogo ativo pela FreshCan, você escolhe o que pode ser retirado.</p>
           </div>
         </div>
         <div class="product-check-grid" id="p-products"></div>
@@ -271,7 +271,7 @@
       categoriasDisponiveis = data.categoriasDisponiveis || [];
       const a = data.assinante;
       document.getElementById("p-child-name").textContent = a.childName || "—";
-      document.getElementById("p-guardian-name").textContent = `Responsável: ${a.guardianName || "—"}`;
+      document.getElementById("p-guardian-name").textContent = `Cliente: ${a.guardianName || "—"}`;
       document.getElementById("p-status").textContent = STATUS_LABEL[a.status] || a.status;
       document.getElementById("p-plan").textContent = `R$${a.planValue} / mês`;
       document.getElementById("p-payment").textContent = a.paymentMethod || "—";
