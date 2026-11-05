@@ -165,52 +165,63 @@
 <!-- ============================== INFORMAÇÕES DA ASSINATURA ============================== -->
 <section class="section" id="planos">
   <div class="container">
-    <div class="section-head center reveal">
+    <div class="section-head center reveal" id="planos-head-assinatura">
       <span class="eyebrow">Como funciona o valor</span>
       <h2>O que está incluso</h2>
       <p>O valor da assinatura se transforma em saldo liberado para consumo dos produtos elegíveis, válido por 90 dias a partir da contratação. Você decide, no cadastro, quais categorias de produto ficam disponíveis para retirada.</p>
+    </div>
+    <div class="section-head center reveal" id="planos-head-avulsa" style="display:none;">
+      <span class="eyebrow">Cupom aplicado</span>
+      <h2>Compra avulsa com desconto</h2>
+      <p id="planos-head-avulsa-texto">Escolha um dos produtos elegíveis para o seu cupom — é uma cobrança única, sem assinatura mensal.</p>
     </div>
 
     <div style="text-align:center; margin-bottom:22px;" class="reveal">
       <span class="status-tag" style="background:#fff6ea; color:#b9790a;"></span>
     </div>
 
-    <div class="pricing-grid reveal">
+    <div class="pricing-grid reveal" id="pricing-grid-assinatura">
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 59 / mês" data-valor="59" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 59 / mês" data-valor="59" data-tipo="assinatura" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$59<span>/mês</span></div>
         </label>
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 99 / mês" data-valor="99" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 99 / mês" data-valor="99" data-tipo="assinatura" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$99<span>/mês</span></div>
         </label>
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 150 / mês" data-valor="150" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 150 / mês" data-valor="150" data-tipo="assinatura" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$150<span>/mês</span></div>
         </label>
       <label class="price-tier">
-        <input type="radio" name="plan" value="R$ 199 / mês" data-valor="199" form="subscription-form">
+        <input type="radio" name="plan" value="R$ 199 / mês" data-valor="199" data-tipo="assinatura" form="subscription-form">
         <div class="tier-name">Assinatura mensal</div>
         <div class="tier-price">R$199<span>/mês</span></div>
         </label>
       <label class="price-tier" id="plan-tier-custom">
-        <input type="radio" name="plan" value="Outro valor" data-valor="0" id="plan-custom-radio" form="subscription-form">
+        <input type="radio" name="plan" value="Outro valor" data-valor="0" data-tipo="assinatura" id="plan-custom-radio" form="subscription-form">
         <div class="tier-name">Outro valor</div>
         <div class="tier-price-custom">
           <span>R$</span><input type="number" id="plan-custom-valor" min="5" step="1" inputmode="numeric" placeholder="0" aria-label="Digite o valor mensal da sua assinatura"><span>/mês</span>
         </div>
         </label>
     </div>
+
+    <!-- Mostrado só quando um cupom de compra avulsa válido é digitado na Etapa 1
+         do cadastro (ver COUPONS no script, mais abaixo). Mesmo grupo de radio
+         "plan" da assinatura, então a navegação do wizard não precisa mudar. -->
+    <div class="pricing-grid reveal" id="pricing-grid-avulsa" style="display:none;"></div>
+
     <p id="plan-custom-hint" style="display:none; text-align:center; color:var(--ink-soft); font-size:12.5px; margin-top:12px;">Assim como os planos acima, esse valor vira uma cobrança mensal automática via Asaas — ela se repete sozinha todo mês, então você não precisa lembrar de pagar.</p>
     <p id="plan-custom-error" style="display:none; text-align:center; color:#b42318; font-size:13.5px; margin-top:12px;">Digite um valor de pelo menos R$5 para a assinatura.</p>
     <p id="plan-required-hint" style="display:none; text-align:center; color:#b42318; font-size:13.5px; margin-top:12px;">Escolha um plano aí em cima antes de continuar.</p>
 
     <div class="plan-card reveal" style="margin-top:30px;">
       <a href="#cadastro" class="btn btn-coral btn-block">Quero assinar</a>
-      <p class="plan-note">A cobrança mensal é feita via Asaas (boleto, Pix ou cartão).</p>
+      <p class="plan-note" id="plan-note-cobranca">A cobrança mensal é feita via Asaas (boleto, Pix ou cartão).</p>
       <a href="painel.html" class="btn btn-outline btn-block" style="margin-top:14px;">Já sou assinante — acessar meu painel</a>
     </div>
   </div>
@@ -252,6 +263,11 @@
               <input type="email" id="s-email" placeholder="voce@email.com" required>
               <p style="font-size:12px; color:var(--ink-soft); margin-top:2px;">Enviamos o código de retirada/acesso ao painel por e-mail além de mostrar aqui na tela.</p>
             </div>
+            <div class="form-field full">
+              <label for="s-coupon">Tem um cupom de desconto? (opcional)</label>
+              <input type="text" id="s-coupon" placeholder="Ex: VIVARUN26" style="text-transform:uppercase;">
+              <p id="s-coupon-feedback" style="font-size:12px; margin-top:2px;"></p>
+            </div>
           </div>
         </div>
 
@@ -262,7 +278,7 @@
               <label for="s-child">Nome do cliente</label>
               <input type="text" id="s-child" required>
             </div>
-            <div class="form-field full">
+            <div class="form-field full" id="s-school-field">
               <label for="s-school">Empresa parceira</label>
               <select id="s-school" required>
                 <option value="">Carregando empresas parceiras...</option>
@@ -302,12 +318,18 @@
         </div>
 
         <div class="form-step" data-step="4">
-          <div class="step-balloon">💬 Por último, escolha quais categorias de produto o cliente pode retirar. Bebidas alcoólicas nunca entram.</div>
-          <div class="form-grid">
+          <div class="step-balloon" id="s-step4-balloon">💬 Por último, escolha quais categorias de produto o cliente pode retirar. Bebidas alcoólicas nunca entram.</div>
+          <div class="form-grid" id="s-step4-categorias">
             <div class="form-field full">
               <label>Categoria de produtos disponível para retirar</label>
               <p style="font-size:12.5px; color:var(--ink-soft); margin-top:-2px;">Marque as categorias liberadas. Bebidas alcoólicas não entram nesta lista.</p>
               <div class="product-check-grid" id="s-products"></div>
+            </div>
+          </div>
+          <div class="form-grid" id="s-step4-avulsa" style="display:none;">
+            <div class="form-field full">
+              <label>Produto do cupom</label>
+              <p id="s-step4-avulsa-resumo" style="font-size:14px; color:var(--ink-soft);"></p>
             </div>
           </div>
           <p class="plan-note" style="margin-top:4px; margin-bottom:18px; text-align:left;">
@@ -366,7 +388,7 @@
             <a id="cartao-link" href="#" target="_blank" rel="noopener" class="btn btn-primary btn-sm">Ir para o checkout seguro</a>
             <p style="font-size:12px; color:var(--ink-soft); margin-top:8px;">Você será levado(a) a uma página da própria Asaas para digitar os dados do cartão com segurança — nós nunca recebemos esses dados.</p>
           </div>
-          <p style="font-size:12px; color:var(--ink-soft); margin-top:10px;">Vencimento: <span id="payment-vencimento"></span>. A cobrança se repete todo mês automaticamente.</p>
+          <p style="font-size:12px; color:var(--ink-soft); margin-top:10px;">Vencimento: <span id="payment-vencimento"></span>. <span id="payment-recorrencia">A cobrança se repete todo mês automaticamente.</span></p>
         </div>
       </div>
 
@@ -509,6 +531,119 @@
     // no backend) — bots que montam e enviam a requisição na hora não têm esse delay.
     document.getElementById("s-loaded-at").value = Date.now();
 
+    /* --- Cupons de compra avulsa (ex: VIVARUN26) ---
+       Espelha (validUntil, desconto, produtos elegíveis) o que está em
+       criar-assinatura.js no backend — o backend sempre recalcula e nunca
+       confia no valor daqui, isso aqui é só pra UX responder na hora. Se
+       mudar um cupom, mude os dois lados. */
+    const COUPONS_AVULSOS = {
+      VIVARUN26: {
+        validUntil: "2026-11-13",
+        discountPct: 10,
+        produtos: [
+          { id: "coconut-fresh-500", nome: "Água de Coco (Coconut Fresh) 500ml", precoOriginal: 26.0 },
+          { id: "suco-acai-guarana", nome: "Suco de Açaí com Água de Coco e Guaraná 500ml", precoOriginal: 30.0 },
+          { id: "whey-banana-baunilha", nome: "Whey Protein Banana e Baunilha 500ml", precoOriginal: 30.0 },
+          { id: "banoffee", nome: "Banoffee 250ml", precoOriginal: 20.0 },
+        ],
+      },
+    };
+    const RETIRADA_AVULSA_PADRAO = "Loja FreshCan — Viva Park (retirada direta)";
+
+    let cupomAtivo = null; // { code, discountPct, produtos } quando um cupom válido estiver digitado
+    function gridPlanoVisivel() {
+      return cupomAtivo ? document.getElementById("pricing-grid-avulsa") : document.getElementById("pricing-grid-assinatura");
+    }
+
+    const gridAvulsa = document.getElementById("pricing-grid-avulsa");
+    const gridAssinatura = document.getElementById("pricing-grid-assinatura");
+    const headAssinatura = document.getElementById("planos-head-assinatura");
+    const headAvulsa = document.getElementById("planos-head-avulsa");
+    const planNoteCobranca = document.getElementById("plan-note-cobranca");
+    const schoolField = document.getElementById("s-school-field");
+    const step4Categorias = document.getElementById("s-step4-categorias");
+    const step4Avulsa = document.getElementById("s-step4-avulsa");
+
+    function montarGridAvulsa(cupom) {
+      gridAvulsa.innerHTML = cupom.produtos.map((p) => {
+        const precoFinal = Number((p.precoOriginal * (1 - cupom.discountPct / 100)).toFixed(2));
+        return `
+          <label class="price-tier">
+            <input type="radio" name="plan" value="${p.nome} (cupom ${cupom.code})" data-valor="${precoFinal}" data-tipo="avulsa" data-produto-id="${p.id}" data-produto-nome="${p.nome}" form="subscription-form">
+            <div class="tier-name">${p.nome}</div>
+            <div class="tier-price"><span style="text-decoration:line-through; font-size:13px; color:var(--ink-soft);">R$${p.precoOriginal.toFixed(2)}</span><br>R$${precoFinal.toFixed(2)}</div>
+          </label>`;
+      }).join("");
+      gridAvulsa.querySelectorAll('input[name="plan"]').forEach((input) => {
+        input.addEventListener("change", () => atualizarResumoPlano(input));
+      });
+    }
+
+    function ativarModoAvulso(cupom) {
+      cupomAtivo = cupom;
+      montarGridAvulsa(cupom);
+      gridAssinatura.style.display = "none";
+      gridAvulsa.style.display = "grid";
+      headAssinatura.style.display = "none";
+      headAvulsa.style.display = "block";
+      document.getElementById("planos-head-avulsa-texto").textContent =
+        `Cupom ${cupom.code} aplicado — ${cupom.discountPct}% de desconto. Escolha um dos produtos elegíveis abaixo. É uma cobrança única, sem assinatura mensal.`;
+      planNoteCobranca.textContent = "A cobrança é única (não se repete) via Asaas (boleto, Pix ou cartão).";
+      schoolField.style.display = "none";
+      step4Categorias.style.display = "none";
+      step4Avulsa.style.display = "block";
+      document.getElementById("s-step4-balloon").textContent = "💬 Pronto! Esse é o produto que você vai retirar com o cupom.";
+      // Limpa seleção de plano anterior (vinha da grade de assinatura mensal).
+      document.querySelectorAll('input[name="plan"]:checked').forEach((i) => { i.checked = false; });
+      document.querySelectorAll(".price-tier").forEach((tier) => tier.classList.remove("is-selected"));
+      planSummary.textContent = "Nenhum produto selecionado ainda — escolha um acima.";
+    }
+
+    function desativarModoAvulso() {
+      cupomAtivo = null;
+      gridAssinatura.style.display = "grid";
+      gridAvulsa.style.display = "none";
+      headAssinatura.style.display = "block";
+      headAvulsa.style.display = "none";
+      planNoteCobranca.textContent = "A cobrança mensal é feita via Asaas (boleto, Pix ou cartão).";
+      schoolField.style.display = "block";
+      step4Categorias.style.display = "block";
+      step4Avulsa.style.display = "none";
+      document.getElementById("s-step4-balloon").textContent = "💬 Por último, escolha quais categorias de produto o cliente pode retirar. Bebidas alcoólicas nunca entram.";
+      document.querySelectorAll('input[name="plan"]:checked').forEach((i) => { i.checked = false; });
+      document.querySelectorAll(".price-tier").forEach((tier) => tier.classList.remove("is-selected"));
+      planSummary.textContent = "Nenhum plano selecionado ainda — escolha um plano acima.";
+    }
+
+    const couponInput = document.getElementById("s-coupon");
+    const couponFeedback = document.getElementById("s-coupon-feedback");
+    function checarCupomDigitado() {
+      const codigo = couponInput.value.trim().toUpperCase();
+      if (!codigo) {
+        couponFeedback.textContent = "";
+        if (cupomAtivo) desativarModoAvulso();
+        return;
+      }
+      const cupom = COUPONS_AVULSOS[codigo];
+      if (!cupom) {
+        couponFeedback.style.color = "#b42318";
+        couponFeedback.textContent = "Cupom não encontrado.";
+        if (cupomAtivo) desativarModoAvulso();
+        return;
+      }
+      const hoje = new Date().toISOString().slice(0, 10);
+      if (cupom.validUntil && hoje > cupom.validUntil) {
+        couponFeedback.style.color = "#b42318";
+        couponFeedback.textContent = `Esse cupom expirou em ${cupom.validUntil.split("-").reverse().join("/")}.`;
+        if (cupomAtivo) desativarModoAvulso();
+        return;
+      }
+      couponFeedback.style.color = "#1a7a4c";
+      couponFeedback.textContent = `Cupom ${codigo} válido! Veja os produtos elegíveis na seção "O que está incluso" acima.`;
+      ativarModoAvulso({ code: codigo, discountPct: cupom.discountPct, produtos: cupom.produtos });
+    }
+    couponInput.addEventListener("input", checarCupomDigitado);
+
     /* --- Seleção de plano (destaca o cartão escolhido + resume no formulário) --- */
     const planInputs = document.querySelectorAll('input[name="plan"]');
     const planSummary = document.getElementById("s-plan-summary");
@@ -520,11 +655,16 @@
     function atualizarResumoPlano(input) {
       document.querySelectorAll(".price-tier").forEach((tier) => tier.classList.remove("is-selected"));
       input.closest(".price-tier").classList.add("is-selected");
-      planSummary.textContent = `Plano escolhido: ${input.value}.`;
+      const ehAvulsa = input.dataset.tipo === "avulsa";
+      planSummary.textContent = ehAvulsa ? `Produto escolhido: ${input.dataset.produtoNome} — R$${Number(input.dataset.valor).toFixed(2)} (cupom ${cupomAtivo.code}).` : `Plano escolhido: ${input.value}.`;
       planSummary.style.color = "var(--ink)";
       document.getElementById("plan-required-hint").style.display = "none";
       planCustomHint.style.display = input === planCustomRadio ? "block" : "none";
       if (input !== planCustomRadio) planCustomError.style.display = "none";
+      if (ehAvulsa) {
+        document.getElementById("s-step4-avulsa-resumo").textContent =
+          `${input.dataset.produtoNome} — R$${Number(input.dataset.valor).toFixed(2)} com o cupom ${cupomAtivo.code}.`;
+      }
     }
 
     planInputs.forEach((input) => {
@@ -532,7 +672,7 @@
     });
     document.getElementById("s-plan-scroll")?.addEventListener("click", (e) => {
       e.preventDefault();
-      document.querySelector(".pricing-grid").scrollIntoView({ behavior: "smooth", block: "center" });
+      gridPlanoVisivel().scrollIntoView({ behavior: "smooth", block: "center" });
     });
 
     /* --- Campo "Outro valor": digitar já seleciona o cartão e atualiza o valor usado no envio --- */
@@ -597,7 +737,7 @@
       if (index === 2) {
         const planoInput = document.querySelector('input[name="plan"]:checked');
         if (!planoInput) {
-          document.querySelector(".pricing-grid").scrollIntoView({ behavior: "smooth", block: "center" });
+          gridPlanoVisivel().scrollIntoView({ behavior: "smooth", block: "center" });
           document.getElementById("plan-required-hint").style.display = "block";
           return false;
         }
@@ -702,7 +842,7 @@
     const paymentResult = document.getElementById("payment-result");
     const LABEL_GERANDO = { Boleto: "Gerando boleto...", Pix: "Gerando Pix...", "Cartão de crédito": "Abrindo checkout..." };
 
-    async function gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor, metodo, categoriasPermitidas, fotoBase64 }) {
+    async function gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor, metodo, categoriasPermitidas, fotoBase64, cupom, produtoId, descricao }) {
       const res = await fetch(`${window.FreshCan.API_URL}/api/criar-assinatura`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -717,7 +857,9 @@
           metodo,
           categoriasPermitidas,
           fotoBase64,
-          descricao: `Assinatura FreshCan — ${crianca} — ${escola}`,
+          cupom,
+          produtoId,
+          descricao,
           honeypot: document.getElementById("s-website").value,
           loadedAt: Number(document.getElementById("s-loaded-at").value || 0),
           turnstileToken: document.querySelector('[name="cf-turnstile-response"]')?.value || "",
@@ -747,6 +889,9 @@
         return false;
       }
       document.getElementById("payment-vencimento").textContent = cobranca.vencimento || "a confirmar";
+      document.getElementById("payment-recorrencia").textContent = cobranca.tipoCompra === "avulsa"
+        ? "Essa é uma cobrança única — não se repete."
+        : "A cobrança se repete todo mês automaticamente.";
       paymentResult.style.display = "block";
       return true;
     }
@@ -771,7 +916,7 @@
       const escola = document.getElementById("s-school").value;
       const planoInput = document.querySelector('input[name="plan"]:checked');
       if (!planoInput) {
-        document.querySelector(".pricing-grid").scrollIntoView({ behavior: "smooth", block: "center" });
+        gridPlanoVisivel().scrollIntoView({ behavior: "smooth", block: "center" });
         document.getElementById("plan-required-hint").style.display = "block";
         return;
       }
@@ -788,16 +933,31 @@
       }
       const plano = planoInput.value;
       const valorPlano = Number(planoInput.dataset.valor || 0);
+      const ehAvulsa = planoInput.dataset.tipo === "avulsa";
+      const produtoId = planoInput.dataset.produtoId || null;
+      const produtoNome = planoInput.dataset.produtoNome || null;
       const pagamento = document.querySelector('input[name="payment"]:checked')?.value || "[forma de pagamento não selecionada]";
       const categoriaIds = Array.from(document.querySelectorAll('input[name="allowed-category"]:checked')).map((i) => i.value);
       const categorias = categoriaIds.map((id) => window.PRODUCT_CATEGORIES.find((c) => c.id === id)?.label || id);
+      const escolaFinal = ehAvulsa ? RETIRADA_AVULSA_PADRAO : escola;
+      const descricaoFinal = ehAvulsa
+        ? `FreshCan — cupom ${cupomAtivo.code} — ${produtoNome}`
+        : `Assinatura FreshCan — ${crianca} — ${escola}`;
 
       let cobranca = null;
       let erroCobranca = null;
       submitBtn.disabled = true;
       submitBtn.textContent = LABEL_GERANDO[pagamento] || "Enviando...";
       try {
-        cobranca = await gerarCobranca({ nome, cpf, whatsapp, email, crianca, escola, valor: valorPlano, metodo: pagamento, categoriasPermitidas: categoriaIds, fotoBase64 });
+        cobranca = await gerarCobranca({
+          nome, cpf, whatsapp, email, crianca, escola: escolaFinal,
+          valor: valorPlano, metodo: pagamento,
+          categoriasPermitidas: ehAvulsa ? [] : categoriaIds,
+          fotoBase64,
+          cupom: ehAvulsa ? cupomAtivo.code : undefined,
+          produtoId: ehAvulsa ? produtoId : undefined,
+          descricao: descricaoFinal,
+        });
       } catch (err) {
         erroCobranca = err.message;
         errorMsg.textContent = `Não deu pra gerar a cobrança automaticamente agora (${err.message}). Vamos te enviar por WhatsApp assim que possível — segue o pedido pra nossa equipe.`;
@@ -806,15 +966,22 @@
       submitBtn.disabled = false;
       submitBtn.textContent = "Confirmar assinatura";
 
-      let msg = "Olá, FreshCan! Quero assinar o programa de assinatura FreshCan. 🥗\n\n";
+      let msg = ehAvulsa
+        ? `Olá, FreshCan! Quero resgatar meu cupom ${cupomAtivo.code}. 🥗\n\n`
+        : "Olá, FreshCan! Quero assinar o programa de assinatura FreshCan. 🥗\n\n";
       msg += `Seu nome: ${nome}\n`;
       msg += `Seu CPF: ${cpf}\n`;
       msg += `Seu WhatsApp: ${whatsapp}\n`;
       msg += `Nome de quem retira: ${crianca}\n`;
-      msg += `Empresa parceira: ${escola}\n`;
-      msg += `Plano escolhido: ${plano}\n`;
+      if (ehAvulsa) {
+        msg += `Cupom: ${cupomAtivo.code}\n`;
+        msg += `Produto: ${produtoNome}\n`;
+      } else {
+        msg += `Empresa parceira: ${escola}\n`;
+        msg += `Plano escolhido: ${plano}\n`;
+        msg += `Produtos liberados para o cliente: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
+      }
       msg += `Forma de pagamento: ${pagamento}\n`;
-      msg += `Produtos liberados para o cliente: ${categorias.length ? categorias.join(", ") : "nenhuma categoria marcada"}\n`;
       if (cobranca?.codigo) msg += `Código de retirada/acesso: ${cobranca.codigo}\n`;
       if (cobranca?.boletoUrl) msg += `Boleto já gerado: ${cobranca.boletoUrl}\n`;
       if (cobranca?.faturaUrl && cobranca.metodo !== "Boleto") msg += `Link de pagamento: ${cobranca.faturaUrl}\n`;
