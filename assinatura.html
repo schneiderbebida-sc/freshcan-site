@@ -590,6 +590,7 @@
         `Cupom ${cupom.code} aplicado — ${cupom.discountPct}% de desconto. Escolha um dos produtos elegíveis abaixo. É uma cobrança única, sem assinatura mensal.`;
       planNoteCobranca.textContent = "A cobrança é única (não se repete) via Asaas (boleto, Pix ou cartão).";
       schoolField.style.display = "none";
+      document.getElementById("s-school").required = false; // campo escondido mas "required" ainda bloqueia reportValidity() silenciosamente em alguns navegadores
       step4Categorias.style.display = "none";
       step4Avulsa.style.display = "block";
       document.getElementById("s-step4-balloon").textContent = "💬 Pronto! Esse é o produto que você vai retirar com o cupom.";
@@ -607,6 +608,7 @@
       headAvulsa.style.display = "none";
       planNoteCobranca.textContent = "A cobrança mensal é feita via Asaas (boleto, Pix ou cartão).";
       schoolField.style.display = "block";
+      document.getElementById("s-school").required = true;
       step4Categorias.style.display = "block";
       step4Avulsa.style.display = "none";
       document.getElementById("s-step4-balloon").textContent = "💬 Por último, escolha quais categorias de produto o cliente pode retirar. Bebidas alcoólicas nunca entram.";
