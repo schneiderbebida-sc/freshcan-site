@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial — Assinatura FreshCan</title>
+<meta name="robots" content="noindex">
+<style>
+  :root{
+    --bg:#f5f3ef; --card:#ffffff; --text:#1c1f1a; --muted:#6b6f68;
+    --accent:#ff5a36; --accent-soft:#ffe4da; --border:#e6e2d4;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#15170f; --card:#1f2217; --text:#f1efe9; --muted:#a3a79b;
+      --accent:#ff7a52; --accent-soft:#3a2015; --border:#2b2e22;
+    }
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:28px 16px 40px; display:flex; flex-direction:column; gap:14px;}
+  h1{font-size:1.25rem; margin:0;}
+  p.sub{color:var(--muted); margin:0; font-size:.92rem;}
+
+  .viewer{
+    background:var(--card); border:1px solid var(--border); border-radius:16px;
+    overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.06);
+  }
+  .caption{
+    display:flex; align-items:flex-start; gap:14px;
+    padding:18px 20px; border-bottom:1px solid var(--border);
+    background:var(--accent-soft);
+    border-left:4px solid var(--accent);
+  }
+  .caption .badge{
+    flex:0 0 auto; width:28px; height:28px; border-radius:8px;
+    background:var(--card); color:var(--accent); font-weight:700; font-size:.85rem;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .caption p{margin:0; font-size:1rem; line-height:1.45;}
+
+  .slide-frame{position:relative; width:100%; aspect-ratio:1568/662; background:var(--card);}
+  .slide-frame img{
+    position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    opacity:0; transition:opacity .25s ease; display:block;
+  }
+  .slide-frame img.active{opacity:1;}
+
+  .controls{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    padding:14px 18px; border-top:1px solid var(--border);
+  }
+  button.nav{
+    display:flex; align-items:center; gap:7px;
+    background:var(--accent-soft); color:var(--accent); border:none;
+    border-radius:9px; padding:9px 16px; font-size:.92rem; font-weight:600;
+    cursor:pointer; font-family:inherit;
+  }
+  button.nav:disabled{opacity:.35; cursor:default;}
+  button.nav:not(:disabled):hover{filter:brightness(0.95);}
+  button.nav:not(:disabled):active{transform:translateY(1px);}
+
+  .counter{display:flex; align-items:center; gap:8px; font-size:.85rem; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .dots{display:flex; gap:6px;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--border); cursor:pointer; border:none; padding:0;}
+  .dot.active{background:var(--accent); width:18px; border-radius:4px;}
+
+  @media (max-width:480px){
+    .controls{padding:12px 14px;}
+    button.nav span.label{display:none;}
+    button.nav{padding:10px 12px;}
+    .caption{padding:14px 16px;}
+    .caption p{font-size:.92rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>Tutorial — Assinatura FreshCan</h1>
+  <p class="sub">Passo a passo real em freshcan.com.br/assinatura.html, pensado pra comunidade do Colégio Bom Jesus Vivapark. Use os botões (ou as setas do teclado) para passar os slides no seu ritmo.</p>
+
+  <div class="viewer">
+    <div class="caption" id="captionBox">
+      <div class="badge" id="captionBadge">01</div>
+      <p id="captionText"></p>
+    </div>
+    <div class="slide-frame" id="slideFrame">
+      <img src="images/tutorialassinatura/frame1.jpg" data-i="0" class="active" alt="Slide 1">
+      <img src="images/tutorialassinatura/frame2.jpg" data-i="1" alt="Slide 2">
+      <img src="images/tutorialassinatura/frame3.jpg" data-i="2" alt="Slide 3">
+      <img src="images/tutorialassinatura/frame4.jpg" data-i="3" alt="Slide 4">
+      <img src="images/tutorialassinatura/frame5.jpg" data-i="4" alt="Slide 5">
+      <img src="images/tutorialassinatura/frame6.jpg" data-i="5" alt="Slide 6">
+      <img src="images/tutorialassinatura/frame7.jpg" data-i="6" alt="Slide 7">
+    </div>
+    <div class="controls">
+      <button class="nav" id="prevBtn" aria-label="Slide anterior">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 3L5 8L10 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Voltar</span>
+      </button>
+      <div class="counter">
+        <span id="counterText">1 / 7</span>
+        <div class="dots" id="dots"></div>
+      </div>
+      <button class="nav" id="nextBtn" aria-label="Próximo slide">
+        <span class="label">Avançar</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3L11 8L6 13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const captions = [
+    "A assinatura FreshCan libera, todo mês, o consumo de produtos frescos sem aditivos, sem conservantes e sem excesso de açúcar nos pontos de retirada parceiros, incluindo a comunidade do Colégio Bom Jesus Vivapark. Clique em \"Quero assinar\" para começar.",
+    "Veja como funciona: você contrata a assinatura, recebe o código por e-mail, apresenta esse código no ponto de retirada e o produto é retirado. Simples assim.",
+    "Escolha o valor mensal da assinatura (R$59, R$99, R$150, R$199 ou outro valor) e clique em \"Quero assinar\". Esse valor vira um saldo válido por 90 dias para usar nos produtos liberados.",
+    "Primeira etapa do cadastro: preencha os dados de quem contrata a assinatura, o responsável — nome, WhatsApp, CPF e e-mail. É nesse e-mail que o código de retirada vai chegar.",
+    "Segunda etapa: informe o nome de quem vai retirar o produto (o aluno ou você mesmo), selecione \"Colégio Bom Jesus Vivapark\" na lista de empresa parceira e envie uma foto do rosto. Essa foto é só para conferência na hora da retirada, garantindo que só a pessoa certa use o código.",
+    "Terceira etapa: confirme o plano escolhido e selecione a forma de pagamento — boleto, cartão de crédito ou Pix.",
+    "Última etapa: marque as categorias de produto liberadas para retirada (bebidas alcoólicas nunca entram) e clique em \"Confirmar assinatura\". O código chega no seu e-mail e é usado para retirar o produto no nosso container em Porto Belo."
+  ];
+
+  const slides = Array.from(document.querySelectorAll('.slide-frame img'));
+  const total = slides.length;
+  let idx = 0;
+
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const counterText = document.getElementById('counterText');
+  const dotsWrap = document.getElementById('dots');
+  const captionBadge = document.getElementById('captionBadge');
+  const captionText = document.getElementById('captionText');
+
+  for (let i = 0; i < total; i++){
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', 'Ir para o slide ' + (i + 1));
+    d.addEventListener('click', () => go(i));
+    dotsWrap.appendChild(d);
+  }
+  const dots = Array.from(dotsWrap.children);
+
+  function render(){
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    counterText.textContent = (idx + 1) + ' / ' + total;
+    prevBtn.disabled = idx === 0;
+    nextBtn.disabled = idx === total - 1;
+    captionBadge.textContent = String(idx + 1).padStart(2, '0');
+    captionText.textContent = captions[idx] || '';
+  }
+
+  function go(i){
+    idx = Math.max(0, Math.min(total - 1, i));
+    render();
+  }
+
+  prevBtn.addEventListener('click', () => go(idx - 1));
+  nextBtn.addEventListener('click', () => go(idx + 1));
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') go(idx - 1);
+    if (e.key === 'ArrowRight') go(idx + 1);
+  });
+
+  render();
+</script>
+
+</body>
+</html>
