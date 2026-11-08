@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Gestão — FreshCan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f3f0;
+    --panel: #ffffff;
+    --ink: #1c1b19;
+    --muted: #6b6a66;
+    --accent: #EA7913;
+    --bubble-user: #EA7913;
+    --bubble-user-ink: #fff;
+    --bubble-bot: #f0efec;
+    --border: #e3e1dc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Inter", sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  header .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); }
+  header h1 { font-size: 16px; margin: 0; font-weight: 700; }
+  header p { margin: 0; font-size: 12px; color: var(--muted); }
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 16px;
+  }
+  #log {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+  .msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+  .msg.user { align-self: flex-end; background: var(--bubble-user); color: var(--bubble-user-ink); border-bottom-right-radius: 4px; }
+  .msg.bot { align-self: flex-start; background: var(--bubble-bot); color: var(--ink); border-bottom-left-radius: 4px; }
+  .msg.system { align-self: center; color: var(--muted); font-size: 12px; text-align: center; max-width: 100%; }
+  form {
+    display: flex;
+    gap: 8px;
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+  }
+  textarea {
+    flex: 1;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    min-height: 44px;
+    max-height: 140px;
+  }
+  button {
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 600;
+    padding: 0 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  #gate { display: flex; align-items: center; justify-content: center; flex: 1; padding: 40px 20px; text-align: center; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="dot"></span>
+  <div>
+    <h1 id="title">Gestão FreshCan</h1>
+    <p id="subtitle">Carregando...</p>
+  </div>
+</header>
+
+<main id="main" hidden>
+  <div id="log"></div>
+  <form id="form">
+    <textarea id="input" placeholder="Escreva sua mensagem..." rows="1"></textarea>
+    <button type="submit" id="send">Enviar</button>
+  </form>
+</main>
+
+<div id="gate">Link inválido ou incompleto.</div>
+
+<script src="js/script.js"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("a");
+  if (!slug) return; // mantém o #gate visível
+
+  document.getElementById("gate").hidden = true;
+  document.getElementById("main").hidden = false;
+
+  const log = document.getElementById("log");
+  const form = document.getElementById("form");
+  const input = document.getElementById("input");
+  const send = document.getElementById("send");
+  const subtitle = document.getElementById("subtitle");
+  const title = document.getElementById("title");
+
+  const history = [];
+  let areaLabel = null;
+
+  function addBubble(role, text) {
+    const div = document.createElement("div");
+    div.className = "msg " + role;
+    div.textContent = text;
+    log.appendChild(div);
+    log.scrollTop = log.scrollHeight;
+  }
+
+  function apiUrl() {
+    return (window.FreshCan && window.FreshCan.API_URL) || "https://freshcan-api.vercel.app";
+  }
+
+  async function sendMessage(text) {
+    history.push({ role: "user", content: text });
+    addBubble("user", text);
+    input.value = "";
+    send.disabled = true;
+    subtitle.textContent = "Digitando...";
+
+    try {
+      const res = await fetch(`${apiUrl()}/api/agent-chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, messages: history }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        addBubble("system", data.error || "Não consegui responder agora. Tente de novo em instantes.");
+      } else {
+        if (!areaLabel && data.area) {
+          areaLabel = data.area;
+          title.textContent = "Gestão FreshCan — " + areaLabel;
+        }
+        history.push({ role: "assistant", content: data.reply });
+        addBubble("bot", data.reply);
+      }
+    } catch (err) {
+      addBubble("system", "Falha de conexão. Verifique sua internet e tente de novo.");
+    } finally {
+      send.disabled = false;
+      subtitle.textContent = areaLabel ? "Converse com o " + areaLabel : "Assistente interno";
+      input.focus();
+    }
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    const text = input.value.trim();
+    if (!text) return;
+    sendMessage(text);
+  });
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  subtitle.textContent = "Assistente interno";
+})();
+</script>
+
+</body>
+</html>
