@@ -141,7 +141,8 @@
   }
 
   function apiUrl() {
-    return (window.FreshCan && window.FreshCan.API_URL) || "https://freshcan-api.vercel.app";
+    // Projeto Vercel separado do freshcan-api (ver api/agent-chat.js em freshcan-gestao-api).
+    return "https://freshcan-gestao-api.vercel.app";
   }
 
   async function sendMessage(text) {
