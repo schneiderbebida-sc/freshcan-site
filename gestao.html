@@ -90,6 +90,25 @@
     font-size: 14px;
   }
   button:disabled { opacity: .5; cursor: default; }
+  #attachBtn {
+    background: var(--bubble-bot);
+    color: var(--ink);
+    padding: 0 14px;
+    font-size: 16px;
+  }
+  #chips { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 10px; }
+  .chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--bubble-bot); border: 1px solid var(--border);
+    border-radius: 8px; padding: 4px 8px; font-size: 12px; color: var(--ink);
+  }
+  .chip button {
+    background: none; border: none; padding: 0; color: var(--muted);
+    font-size: 14px; line-height: 1; cursor: pointer;
+  }
+  .msg .file-tag {
+    display: block; font-size: 12px; opacity: .85; margin-bottom: 4px;
+  }
   #gate { display: flex; align-items: center; justify-content: center; flex: 1; padding: 40px 20px; text-align: center; color: var(--muted); font-size: 14px; }
   #gate[hidden] { display: none; }
 </style>
@@ -106,7 +125,10 @@
 
 <main id="main" hidden>
   <div id="log"></div>
+  <div id="chips"></div>
   <form id="form">
+    <input type="file" id="fileInput" accept="image/*,.pdf,.csv,.txt,.xlsx,.xls,.docx" multiple hidden>
+    <button type="button" id="attachBtn" title="Anexar arquivo">📎</button>
     <textarea id="input" placeholder="Escreva sua mensagem..." rows="1"></textarea>
     <button type="submit" id="send">Enviar</button>
   </form>
@@ -130,9 +152,155 @@
   const send = document.getElementById("send");
   const subtitle = document.getElementById("subtitle");
   const title = document.getElementById("title");
+  const fileInput = document.getElementById("fileInput");
+  const attachBtn = document.getElementById("attachBtn");
+  const chips = document.getElementById("chips");
 
   const history = [];
   let areaLabel = null;
+  let pendingFiles = [];
+
+  // --- Anexos: fotos, PDF, CSV/texto nativos na API da Claude; Excel e Word
+  // são convertidos em texto no próprio navegador antes de enviar (xlsx.js e
+  // mammoth.js, carregados só quando o tipo de arquivo exige — nunca no
+  // carregamento normal da página).
+  // A Vercel limita o corpo da requisição a ~4.5MB; base64 infla o arquivo
+  // original em ~33%, então o limite pra foto/PDF precisa ficar bem abaixo disso.
+  // Excel/Word/CSV não têm esse problema — só o texto extraído é enviado (até 50k chars).
+  const MAX_BINARY_BYTES = 3 * 1024 * 1024; // 3MB brutos (imagem/PDF) ~= 4MB em base64
+  const MAX_OTHER_BYTES = 8 * 1024 * 1024; // 8MB brutos (csv/xlsx/docx), só o texto extraído é enviado
+  const MAX_FILES = 3;
+  const MAX_BINARY_FILES = 1; // só 1 foto/PDF por mensagem
+  const XLSX_SRC = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  const MAMMOTH_SRC = "https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js";
+
+  function loadScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[data-src="${src}"]`)) { resolve(); return; }
+      const s = document.createElement("script");
+      s.src = src;
+      s.dataset.src = src;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error("Falha ao carregar biblioteca para ler este arquivo."));
+      document.head.appendChild(s);
+    });
+  }
+
+  function fileToBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function fileToText(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsText(file);
+    });
+  }
+
+  function fileToArrayBuffer(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function isBinaryFile(file) {
+    const name = file.name.toLowerCase();
+    return file.type.startsWith("image/") || file.type === "application/pdf" || name.endsWith(".pdf");
+  }
+
+  // Converte um File em bloco de conteúdo da API da Claude (ou texto extraído).
+  async function fileToContentBlock(file) {
+    const binary = isBinaryFile(file);
+    const limit = binary ? MAX_BINARY_BYTES : MAX_OTHER_BYTES;
+    if (file.size > limit) {
+      throw new Error(`"${file.name}" passa de ${Math.round(limit / 1024 / 1024)}MB. Reduza o tamanho antes de enviar.`);
+    }
+    const name = file.name.toLowerCase();
+
+    if (file.type.startsWith("image/")) {
+      const data = await fileToBase64(file);
+      return { type: "image", source: { type: "base64", media_type: file.type, data } };
+    }
+
+    if (file.type === "application/pdf" || name.endsWith(".pdf")) {
+      const data = await fileToBase64(file);
+      return { type: "document", source: { type: "base64", media_type: "application/pdf", data } };
+    }
+
+    if (file.type === "text/csv" || name.endsWith(".csv") || file.type === "text/plain" || name.endsWith(".txt")) {
+      const text = await fileToText(file);
+      return { type: "text", text: `Conteúdo do arquivo "${file.name}":\n\n${text.slice(0, 50000)}` };
+    }
+
+    if (name.endsWith(".xlsx") || name.endsWith(".xls")) {
+      await loadScriptOnce(XLSX_SRC);
+      const buf = await fileToArrayBuffer(file);
+      const wb = window.XLSX.read(buf, { type: "array" });
+      const parts = wb.SheetNames.map((sheetName) => {
+        const csv = window.XLSX.utils.sheet_to_csv(wb.Sheets[sheetName]);
+        return `--- Planilha "${sheetName}" ---\n${csv}`;
+      });
+      return { type: "text", text: `Conteúdo da planilha "${file.name}":\n\n${parts.join("\n\n").slice(0, 50000)}` };
+    }
+
+    if (name.endsWith(".docx")) {
+      await loadScriptOnce(MAMMOTH_SRC);
+      const buf = await fileToArrayBuffer(file);
+      const result = await window.mammoth.extractRawText({ arrayBuffer: buf });
+      return { type: "text", text: `Conteúdo do documento "${file.name}":\n\n${result.value.slice(0, 50000)}` };
+    }
+
+    throw new Error(`Tipo de arquivo de "${file.name}" não suportado.`);
+  }
+
+  function renderChips() {
+    chips.innerHTML = "";
+    pendingFiles.forEach((file, i) => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      const label = document.createElement("span");
+      label.textContent = "📎 " + file.name;
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "×";
+      removeBtn.onclick = () => {
+        pendingFiles.splice(i, 1);
+        renderChips();
+      };
+      chip.appendChild(label);
+      chip.appendChild(removeBtn);
+      chips.appendChild(chip);
+    });
+  }
+
+  attachBtn.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", () => {
+    const picked = Array.from(fileInput.files || []);
+    fileInput.value = "";
+    if (pendingFiles.length + picked.length > MAX_FILES) {
+      addBubble("system", `Máximo de ${MAX_FILES} arquivos por mensagem.`);
+      return;
+    }
+    const combined = pendingFiles.concat(picked);
+    const binaryCount = combined.filter(isBinaryFile).length;
+    if (binaryCount > MAX_BINARY_FILES) {
+      addBubble("system", `Só dá pra anexar ${MAX_BINARY_FILES} foto ou PDF por mensagem (pode combinar com planilha/texto).`);
+      return;
+    }
+    pendingFiles = combined;
+    renderChips();
+  });
 
   function escapeHtml(text) {
     return text
@@ -150,14 +318,22 @@
       .replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, "<em>$1</em>");
   }
 
-  function addBubble(role, text) {
+  function addBubble(role, text, fileNames) {
     const div = document.createElement("div");
     div.className = "msg " + role;
-    if (role === "user") {
-      div.textContent = text;
-    } else {
-      div.innerHTML = mdToHtml(text);
+    if (fileNames && fileNames.length) {
+      const tag = document.createElement("span");
+      tag.className = "file-tag";
+      tag.textContent = "📎 " + fileNames.join(", ");
+      div.appendChild(tag);
     }
+    const body = document.createElement("span");
+    if (role === "user") {
+      body.textContent = text;
+    } else {
+      body.innerHTML = mdToHtml(text);
+    }
+    div.appendChild(body);
     log.appendChild(div);
     log.scrollTop = log.scrollHeight;
   }
@@ -167,14 +343,38 @@
     return "https://freshcan-gestao-api.vercel.app";
   }
 
-  async function sendMessage(text) {
-    history.push({ role: "user", content: text });
-    addBubble("user", text);
+  async function sendMessage(text, files) {
+    const fileNames = files.map((f) => f.name);
+    addBubble("user", text, fileNames);
     input.value = "";
+    pendingFiles = [];
+    renderChips();
     send.disabled = true;
-    subtitle.textContent = "Digitando...";
+    attachBtn.disabled = true;
+    subtitle.textContent = files.length ? "Lendo arquivo(s)..." : "Digitando...";
 
     try {
+      let content = text;
+      let historyContent = text;
+
+      if (files.length) {
+        const blocks = [];
+        for (const file of files) {
+          blocks.push(await fileToContentBlock(file));
+        }
+        if (text) blocks.push({ type: "text", text });
+        content = blocks;
+        // Na história guardamos só um aviso leve pros anexos binários (imagem/PDF),
+        // pra não reenviar o arquivo inteiro em toda mensagem seguinte da conversa.
+        // Texto extraído (CSV/Excel/Word) fica igual, pois já é só texto.
+        historyContent = blocks.map((b) =>
+          b.type === "text" ? b : { type: "text", text: "[arquivo anexado nesta conversa, já processado]" }
+        );
+      }
+
+      history.push({ role: "user", content });
+      subtitle.textContent = "Digitando...";
+
       const res = await fetch(`${apiUrl()}/api/agent-chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -182,8 +382,10 @@
       });
       const data = await res.json();
       if (!res.ok || !data.ok) {
+        history.pop();
         addBubble("system", data.error || "Não consegui responder agora. Tente de novo em instantes.");
       } else {
+        history[history.length - 1].content = historyContent;
         if (!areaLabel && data.area) {
           areaLabel = data.area;
           title.textContent = "Gestão FreshCan — " + areaLabel;
@@ -192,9 +394,10 @@
         addBubble("bot", data.reply);
       }
     } catch (err) {
-      addBubble("system", "Falha de conexão. Verifique sua internet e tente de novo.");
+      addBubble("system", err.message || "Falha de conexão. Verifique sua internet e tente de novo.");
     } finally {
       send.disabled = false;
+      attachBtn.disabled = false;
       subtitle.textContent = areaLabel ? "Converse com o " + areaLabel : "Assistente interno";
       input.focus();
     }
@@ -203,8 +406,9 @@
   form.addEventListener("submit", function (e) {
     e.preventDefault();
     const text = input.value.trim();
-    if (!text) return;
-    sendMessage(text);
+    const files = pendingFiles;
+    if (!text && !files.length) return;
+    sendMessage(text, files);
   });
 
   input.addEventListener("keydown", function (e) {
