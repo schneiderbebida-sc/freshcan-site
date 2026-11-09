@@ -360,9 +360,19 @@
       if (files.length) {
         const blocks = [];
         for (const file of files) {
-          blocks.push(await fileToContentBlock(file));
+          const block = await fileToContentBlock(file);
+          // Blocos "text" adjacentes chegam concatenados sem separador na API —
+          // insere quebra de linha pra não misturar texto extraído com a mensagem seguinte.
+          const prev = blocks[blocks.length - 1];
+          if (block.type === "text" && prev && prev.type === "text") {
+            block.text = "\n\n" + block.text;
+          }
+          blocks.push(block);
         }
-        if (text) blocks.push({ type: "text", text });
+        if (text) {
+          const prev = blocks[blocks.length - 1];
+          blocks.push({ type: "text", text: prev && prev.type === "text" ? "\n\n" + text : text });
+        }
         content = blocks;
         // Na história guardamos só um aviso leve pros anexos binários (imagem/PDF),
         // pra não reenviar o arquivo inteiro em toda mensagem seguinte da conversa.
