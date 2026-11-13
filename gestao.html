@@ -156,8 +156,32 @@
   const attachBtn = document.getElementById("attachBtn");
   const chips = document.getElementById("chips");
 
+  // Mesmo mapeamento de prefixo usado no slug de cada link (ver SLUGS em
+  // freshcan-gestao-api/api/agent-chat.js) — só pra nomear a página na hora,
+  // sem esperar a 1ª resposta do agente. O nome completo da área já vinha
+  // sendo revelado no "data.area" da 1ª resposta; isso só antecipa.
+  const AREA_LABELS = {
+    fin: "Financeiro",
+    ven: "Vendas",
+    mkt: "Marketing",
+    prd: "Produtos",
+    ate: "Atendimento",
+    log: "Logística",
+    cmp: "Compras e Fornecedores",
+    dad: "Dados e Indicadores",
+    ges: "Gestão de Pessoas",
+    arq: "Arquiteto de Tecnologia",
+    dev: "Desenvolvedor",
+    qas: "QA / Qualidade",
+  };
+
   const history = [];
-  let areaLabel = null;
+  let areaLabel = AREA_LABELS[slug.split("-")[0]] || null;
+  if (areaLabel) {
+    document.title = "Gestão FreshCan — " + areaLabel;
+    title.textContent = "Gestão FreshCan — " + areaLabel;
+    subtitle.textContent = "Converse com o " + areaLabel;
+  }
   let pendingFiles = [];
 
   // --- Anexos: fotos, PDF, CSV/texto nativos na API da Claude; Excel e Word
@@ -428,7 +452,7 @@
     }
   });
 
-  subtitle.textContent = "Assistente interno";
+  if (!areaLabel) subtitle.textContent = "Assistente interno";
 })();
 </script>
 
